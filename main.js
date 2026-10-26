@@ -352,7 +352,7 @@ function renderWorkCards() {
   grid.classList.add("cc-grid");
   grid.innerHTML = CARD_DEFS.filter((c) => !c.hide).map(workCard).join("");
   fitMocks();
-  initCarousel(grid);
+  animateCards(grid);
   if (!window.__ccFit) {
     window.__ccFit = true;
     window.addEventListener("resize", fitMocks);
@@ -365,6 +365,17 @@ function fitMocks() {
     const s = win.clientWidth / 440;
     if (s > 0) m.style.setProperty("--s", s.toFixed(4));
   });
+}
+
+function animateCards(grid) {
+  const cards = [...grid.querySelectorAll(".cc")];
+  cards.forEach((c, i) => c.style.setProperty("--i", i));
+  if (!("IntersectionObserver" in window) || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    cards.forEach((c) => c.classList.add("in"));
+    return;
+  }
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: 0.12 });
+  cards.forEach((c) => io.observe(c));
 }
 
 function initCarousel(grid) {
@@ -804,13 +815,12 @@ function renderContactChrome() {
       arrow: ic('<path d="M7 17L17 7M9 7h8v8"/>'),
     };
     const card = (cls, href, icon, label, value, ext) =>
-      `<a class="cc ${cls}" href="${href}"${ext ? ' target="_blank" rel="noreferrer"' : ""}><span class="cc-i">${icon}</span><span class="cc-t"><small>${label}</small><b>${value}</b></span><span class="cc-a">${I.arrow}</span></a>`;
+      `<a class="kc ${cls}" href="${href}"${ext ? ' target="_blank" rel="noreferrer"' : ""}><span class="kc-i">${icon}</span><span class="kc-t"><small>${label}</small><b>${value}</b></span><span class="kc-a">${I.arrow}</span></a>`;
     el.innerHTML =
-      card("cc-main", `mailto:${esc(P.email)}`, I.mail, esc(tr("Email Ilayanila")), esc(P.email)) +
+      card("kc-main", `mailto:${esc(P.email)}`, I.mail, esc(tr("Email Ilayanila")), esc(P.email)) +
       card("", telHref(P.phones[0]), I.phone, "Phone", esc(P.phones[0])) +
       card("", esc(P.linkedin), I.in, "LinkedIn", "Connect", true) +
-      card("", esc(P.behance), I.be, "Behance", "View work", true) +
-      `<div class="cc cc-loc"><span class="cc-i">${I.pin}</span><span class="cc-t"><small>Based in</small><b>${esc(tr(P.location))}</b></span></div>`;
+      `<div class="kc kc-loc"><span class="kc-i">${I.pin}</span><span class="kc-t"><small>Based in</small><b>${esc(tr(P.location))}</b></span></div>`;
   });
   const legal = $("[data-legal]");
   if (legal) {

@@ -276,20 +276,30 @@ html[data-theme="light"] .cc3d .cc::after{background:#eceae4}
 
 /* contact cards */
 .footer .contact-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:var(--s-4)}
-.cc{display:grid;grid-template-columns:48px minmax(0,1fr) 20px;align-items:center;gap:14px;min-height:76px;padding:14px 18px;border-radius:20px;border:1px solid var(--line);background:var(--surface);color:var(--snow);text-decoration:none;transition:transform .2s,border-color .2s,background .2s}
-a.cc:hover,a.cc:focus-visible{transform:translateY(-2px);border-color:var(--em)}
-a.cc:focus-visible{outline:3px solid var(--em);outline-offset:3px}
-.cc-i{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:color-mix(in srgb,var(--em) 14%,transparent);color:var(--em)}
-.cc svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.cc-t{display:grid;gap:3px;min-width:0}
-.cc-t small{font:500 11px/1 "IBM Plex Mono",monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--snow-dim)}
-.cc-t b{font-weight:600;font-size:15px;overflow-wrap:anywhere}
-.cc-a svg{width:18px;height:18px;color:var(--snow-dim)}
-.cc-main{background:linear-gradient(135deg,color-mix(in srgb,var(--em) 22%,var(--surface)),var(--surface))}
-.cc-loc .cc-i{color:var(--snow)}
-@media (prefers-reduced-motion:reduce){.cc{transition:none}}
+.kc{display:grid;grid-template-columns:48px minmax(0,1fr) 20px;align-items:center;gap:14px;min-height:76px;padding:14px 18px;border-radius:20px;border:1px solid var(--line);background:var(--surface);color:var(--snow);text-decoration:none;transition:transform .2s,border-color .2s,background .2s}
+a.kc:hover,a.kc:focus-visible{transform:translateY(-2px);border-color:var(--em)}
+a.kc:focus-visible{outline:3px solid var(--em);outline-offset:3px}
+.kc-i{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:color-mix(in srgb,var(--em) 14%,transparent);color:var(--em)}
+.kc svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kc-t{display:grid;gap:3px;min-width:0}
+.kc-t small{font:500 11px/1 "IBM Plex Mono",monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--snow-dim)}
+.kc-t b{font-weight:600;font-size:15px;overflow-wrap:anywhere}
+.kc-a svg{width:18px;height:18px;color:var(--snow-dim)}
+.kc-main{background:linear-gradient(135deg,color-mix(in srgb,var(--em) 22%,var(--surface)),var(--surface))}
+.kc-loc .kc-i{color:var(--snow)}
+@media (prefers-reduced-motion:reduce){.kc{transition:none}}
 .footer .contact-row{grid-template-columns:repeat(3,minmax(0,1fr))}
-.footer .cc-main{grid-column:span 2}
-.cc-t b{overflow-wrap:normal}.cc-main .cc-t b{overflow-wrap:anywhere}
-@media (max-width:900px){.footer .contact-row{grid-template-columns:repeat(2,minmax(0,1fr))}.footer .cc-loc{grid-column:span 2}}
-@media (max-width:560px){.footer .contact-row{grid-template-columns:1fr}.footer .cc-main,.footer .cc-loc{grid-column:auto}}
+.footer .kc-main{grid-column:span 2}
+.kc-t b{overflow-wrap:normal}.kc-main .kc-t b{overflow-wrap:anywhere}
+@media (max-width:900px){.footer .contact-row{grid-template-columns:repeat(2,minmax(0,1fr))}.footer .kc-loc{grid-column:span 2}}
+@media (max-width:560px){.footer .contact-row{grid-template-columns:1fr}.footer .kc-main,.footer .kc-loc{grid-column:auto}}
+
+/* fixed animated work cards */
+.cc-grid .cc{opacity:0;transform:translateY(28px) scale(.98);transition:opacity .7s var(--ease,ease),transform .7s var(--ease,ease),box-shadow .3s,border-color .3s;transition-delay:calc(var(--i,0)*90ms)}
+.cc-grid .cc.in{opacity:1;transform:none}
+.cc-grid .cc.in:hover,.cc-grid .cc.in:focus-visible{transform:translateY(-6px);transition-delay:0s}
+@media (prefers-reduced-motion:reduce){.cc-grid .cc{opacity:1;transform:none;transition:none}}
+.cc-grid .cc-kicker{white-space:nowrap;letter-spacing:.07em;font-size:11px;min-height:24px}
+.cc-grid .cc-ai{flex:none;white-space:nowrap;letter-spacing:.06em}
+@media (max-width:1100px){.cc-grid .cc-kicker{letter-spacing:.12em;font-size:12px}}
+@media (max-width:680px){.cc-grid .cc-kicker{letter-spacing:.05em;font-size:11px}}

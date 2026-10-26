@@ -9,7 +9,6 @@ window.PROFILE = {
   email: "ilayanilauiux@gmail.com",
   phones: ["+91 9524349814", "+91 8946053259"],
   linkedin: "https://www.linkedin.com/in/ilayanila-m-350384196",
-  behance: "https://www.behance.net/thizrin",
   greeting: "Hey, I’m Ilayanila",
   currently: "Currently at Simplify VMS · Product AI UX Engineer",
   oneLiner:
