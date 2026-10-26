@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="stylesheet" href="./shell.css?v=8"><script src="./shell-boot.js?v=4"></script><script src="./tr-boot.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shift Management: Making a shift impossible to misread | Case study</title>
+<meta name="description" content="A mobile worker app for healthcare shifts: one calendar, a punch that names its exception, and hours that always say what state they are in. Try the live prototype.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./shift-app.css?v=v2">
+<style>
+:root{
+  --bg:#0B0C0E; --bg2:#111317; --ink:#F4F4F0; --dim:#A6ACB5; --faint:#8E959F;
+  --line:rgba(244,244,240,.11); --line2:rgba(244,244,240,.22); --card:rgba(244,244,240,.05); --card2:rgba(244,244,240,.09);
+  --ac:#B79CFF; --ac-ink:#14091f; --ok:#00FF87; --warn:#FBBF24; --bad:#FF7A7A; --glow:rgba(124,77,255,.38); --glow2:rgba(0,255,135,.12);
+  --s-av:#2DD4BF; --s-my:#6B9BFF; --s-less:#B79CFF; --s-na:#FBBF24; --s-open:#FF7A7A;
+  --disp:'Bricolage Grotesque',system-ui,sans-serif; --body:'Instrument Sans',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace; --serif:'Instrument Serif',Georgia,serif;
+  color-scheme:dark;
+}
+html[data-theme="light"]{
+  --bg:#F9F9F6; --bg2:#F0F0EB; --ink:#14161A; --dim:#454D58; --faint:#5F6772;
+  --line:rgba(20,22,26,.09); --line2:rgba(20,22,26,.2); --card:#fff; --card2:#F5F5F0;
+  --ac:#5B2FD0; --ac-ink:#fff; --ok:#0B7A48; --warn:#9A6200; --bad:#C23030; --glow:rgba(124,77,255,.22); --glow2:rgba(11,122,72,.10);
+  --s-av:#0C8F82; --s-my:#2F5FD0; --s-less:#6B3FE0; --s-na:#9A6200; --s-open:#C23030;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:96px;background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 var(--body);transition:background-color .5s ease,color .5s ease;overflow-x:clip}
+a{color:inherit} img{display:block;max-width:100%}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--ac);outline-offset:3px;border-radius:6px}
+::selection{background:var(--ac);color:var(--ac-ink)}
+.wrap{width:min(1160px,calc(100% - 40px));margin:0 auto}
+h1,h2,h3,h4{font-family:var(--disp);letter-spacing:-.025em;margin:0;text-wrap:balance;font-weight:700;line-height:1.04}
+h2{font-size:clamp(2rem,4.4vw,3.4rem)} h3{font-size:1.35rem;line-height:1.15}
+p{margin:0}
+.eyebrow{font:500 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ac);margin:0 0 18px;display:flex;gap:10px;align-items:center}
+.eyebrow::before{content:"";width:22px;height:1px;background:currentColor}
+.lede{font-size:clamp(1.05rem,1.6vw,1.25rem);color:var(--dim);max-width:44rem;line-height:1.6}
+section{position:relative;padding:112px 0}
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .9s cubic-bezier(.22,1,.36,1),transform .9s cubic-bezier(.22,1,.36,1);transition-delay:var(--d,0s)}
+.reveal.in{opacity:1;transform:none}
+.card{background:var(--card);border:1px solid var(--line);border-radius:24px;transition:background-color .5s,border-color .5s}
+.lab{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 22px;border-radius:999px;border:1px solid var(--line2);background:transparent;text-decoration:none;font-weight:600;transition:all .3s}
+.btn:hover{transform:translateY(-2px)} .btn.pri{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{padding:9px 14px;border-radius:999px;border:1px solid var(--line2);background:transparent;font:600 13px/1 var(--body);color:var(--dim);transition:all .3s}
+.seg button:hover{color:var(--ink);border-color:var(--ink)}
+.seg button[aria-pressed="true"],.seg button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* phone shell */
+.ph{position:relative;width:var(--w,300px);border-radius:calc(var(--w,300px)*.14);padding:calc(var(--w,300px)*.03);background:#0c0d12;box-shadow:0 0 0 1px rgba(255,255,255,.14),0 40px 80px -30px rgba(0,0,0,.7),0 0 90px -30px var(--glow);flex:none}
+html[data-theme="light"] .ph{box-shadow:0 0 0 1px rgba(20,22,26,.25),0 40px 70px -30px rgba(40,20,90,.5)}
+.ph .scr{border-radius:calc(var(--w,300px)*.11);overflow:hidden;background:#F5F6FA;position:relative}
+
+/* hero */
+.hero{padding:116px 0 48px;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:-12% -10% auto auto;width:80vw;height:80vw;max-width:1000px;max-height:1000px;background:radial-gradient(closest-side,var(--glow),transparent 70%);pointer-events:none;transform:translate(10%,-18%)}
+.hero::after{content:"";position:absolute;left:-12%;bottom:-30%;width:60vw;height:60vw;max-width:700px;max-height:700px;background:radial-gradient(closest-side,var(--glow2),transparent 70%);pointer-events:none}
+.hero .wrap{position:relative}
+.hero-g{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+.hero h1{font-size:clamp(2.7rem,6.2vw,5.4rem);letter-spacing:-.04em;line-height:.97}
+.hero h1 em{font:italic 400 1.04em/1 var(--serif);letter-spacing:-.01em;background:linear-gradient(100deg,var(--ac),var(--ok));-webkit-background-clip:text;background-clip:text;color:transparent;padding-right:.06em}
+.hero .lede{margin-top:26px}
+.meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 34px;margin-top:36px;padding-top:24px;border-top:1px solid var(--line);max-width:34rem}
+.meta dt{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.meta dd{margin:8px 0 0;font-weight:500;font-size:15px;line-height:1.4}
+.hero-ph{display:grid;justify-items:center;gap:16px;position:relative}
+.hero-ph .ph{--w:310px}
+.hero-ph.touched .ph{animation:none}
+@keyframes float{0%,100%{transform:translateY(-6px)}50%{transform:translateY(10px)}}
+.try{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;background:color-mix(in srgb,var(--bg) 80%,transparent);border:1px solid var(--line2);font:500 12px/1 var(--mono);letter-spacing:.06em;color:var(--dim)}
+.try i{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok);animation:pulse 1.8s infinite}
+@keyframes pulse{50%{opacity:.35}}
+
+/* 30-second */
+.tl30{margin-top:56px;padding:26px 28px}
+.tl30 .seg{margin:14px 0 22px}
+.tl30 .pane{display:none;animation:swap .5s cubic-bezier(.22,1,.36,1)}
+.tl30 .pane.on{display:block}
+.tl30 .pane p{font-size:clamp(1.1rem,1.9vw,1.45rem);line-height:1.45;max-width:58rem;font-family:var(--disp);letter-spacing:-.015em;font-weight:500}
+.tl30 .pane ul{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.tl30 .pane li{padding:16px;border-radius:16px;background:var(--card2);color:var(--dim);font-size:15px}
+.tl30 .pane li b{display:block;color:var(--ink);margin-bottom:4px;font-family:var(--disp);font-size:1.05rem}
+@keyframes swap{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.counts{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:14px}
+.count{padding:24px 22px}
+.count b{display:block;font:700 clamp(2.4rem,4vw,3.4rem)/1 var(--disp);letter-spacing:-.03em}
+.count span{display:block;margin-top:10px;color:var(--dim);font-size:14.5px;line-height:1.4}
+.note{margin-top:16px;font:400 12.5px/1.5 var(--mono);color:var(--faint);max-width:70ch}
+
+/* brief */
+.split{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:start}
+.split h2{max-width:13ch}
+.persona{padding:26px}
+.persona .seg{margin-bottom:22px}
+.persona .out{display:grid;gap:16px;animation:swap .5s cubic-bezier(.22,1,.36,1)}
+.persona .q{font:italic 400 clamp(1.6rem,3vw,2.3rem)/1.15 var(--serif)}
+.persona .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.persona .col{padding:16px;border-radius:16px;background:var(--card2)}
+.persona .col h4{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.persona .col p{font-size:14.5px;color:var(--dim)}
+.persona .col.need{background:color-mix(in srgb,var(--ac) 12%,transparent)}
+.persona .col.need p{color:var(--ink)}
+.scrub{margin-top:56px;padding:30px}
+.scrub .head{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap;margin-bottom:26px}
+.scrub h3{font-size:1.5rem}
+.track{position:relative;height:96px;margin:0 14px}
+.track .rail{position:absolute;left:0;right:0;top:34px;height:4px;border-radius:2px;background:var(--line2)}
+.track .fill{position:absolute;left:0;top:34px;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--ac),var(--ok));width:0;transition:width .6s cubic-bezier(.22,1,.36,1)}
+.track .nd{position:absolute;top:22px;width:28px;height:28px;margin-left:-14px;border-radius:50%;border:2px solid var(--line2);background:var(--bg);display:grid;place-items:center;font:600 11px/1 var(--mono);color:var(--faint);transition:all .4s cubic-bezier(.22,1,.36,1);padding:0}
+.track .nd.past{border-color:var(--ac);color:var(--ac)}
+.track .nd.on{background:var(--ac);color:var(--ac-ink);border-color:var(--ac);transform:scale(1.28);box-shadow:0 0 0 8px color-mix(in srgb,var(--ac) 22%,transparent)}
+.track .tn{position:absolute;top:62px;transform:translateX(-50%);text-align:center;font:600 13px/1.2 var(--body);color:var(--dim);white-space:nowrap;transition:color .3s}
+.track .tn small{display:block;font:500 10.5px/1 var(--mono);color:var(--faint);margin-top:5px;letter-spacing:.06em}
+.track .tn.on{color:var(--ink)}
+.scrub input[type=range]{width:100%;margin:6px 0 0;accent-color:var(--ac)}
+.stage{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
+.stage>div{padding:22px;border-radius:18px;background:var(--card2);animation:swap .5s cubic-bezier(.22,1,.36,1)}
+.stage .q{font:italic 400 1.7rem/1.15 var(--serif);margin-top:12px}
+.stage p{margin-top:12px;color:var(--dim);font-size:15.5px}
+.stage .a{background:color-mix(in srgb,var(--ac) 12%,transparent)}
+.stage .a p{color:var(--ink)}
+.stage .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
+.stage .chips span{padding:6px 10px;border-radius:999px;border:1px solid var(--line2);font:500 11.5px/1 var(--mono);color:var(--dim)}
+
+/* problem widget */
+.sd{padding:30px;margin-top:48px;display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:center}
+.sd h3{font-size:1.7rem;margin-bottom:12px}
+.sd p{color:var(--dim)}
+.mini{background:#F5F6FA;border-radius:22px;padding:14px;display:grid;gap:10px;color:#1D2433;font-family:Inter,system-ui,sans-serif;position:relative}
+.mini .tabs{display:flex;gap:6px;margin-bottom:2px}
+.mini .tabs span{flex:1;height:34px;border-radius:17px;background:#fff;border:1px solid #E7E9F0;font:700 11.5px/32px Inter,system-ui;text-align:center;color:#6B7384}
+.mini .tabs span.on{background:#2F6BEA;border-color:#2F6BEA;color:#fff;transition:background .4s}
+.sc{display:flex;gap:11px;padding:13px;border-radius:14px;background:#EAF1FF;border-left:5px solid #2F6BEA;text-align:left;width:100%;border-top:0;border-right:0;border-bottom:0;font:inherit;color:inherit;transition:all .4s;position:relative;cursor:pointer}
+.sc .d{width:44px;height:48px;border-radius:10px;background:#2F6BEA;color:#fff;display:grid;place-items:center;font:700 17px/1 Inter,system-ui;text-align:center;flex:none;transition:background .4s}
+.sc .d small{display:block;font-size:10px;font-weight:600}
+.sc b{display:block;font-size:14px}.sc span{display:block;font-size:12px;color:#6B7384}.sc em{font-style:normal;display:block;margin-top:5px;font-size:12px;font-weight:600;color:#2250B8}
+.sc .chp{position:absolute;right:12px;bottom:12px;padding:3px 9px;border-radius:999px;font:700 10.5px/1.2 Inter,system-ui;opacity:0;transition:opacity .4s}
+.mini.old .sc{background:#EEF0F4;border-left-color:#9AA3B5}
+.mini.old .sc .d{background:#9AA3B5}.mini.old .sc em{color:#6B7384}
+.mini.old .tabs span.on{background:#9AA3B5;border-color:#9AA3B5}
+.mini .sc.open{background:#E6F6EF;border-left-color:#16A36A}.mini .sc.open .d{background:#16A36A}.mini .sc.open em{color:#0E7A4D}
+.mini.old .sc.open{background:#EEF0F4;border-left-color:#9AA3B5}.mini.old .sc.open .d{background:#9AA3B5}.mini.old .sc.open em{color:#6B7384}
+.mini:not(.old) .sc .chp{opacity:1;background:#E3EDFF;color:#2250B8}.mini:not(.old) .sc.open .chp{background:#DDF6EA;color:#0E7A4D}
+.sc.right{outline:3px solid #16A36A;outline-offset:2px}.sc.wrong{outline:3px solid #E5484D;outline-offset:2px}
+.sd .res{margin-top:16px;min-height:52px;font-size:15.5px}
+.sd .res b{color:var(--ink)}
+.sd .tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.fails3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+.f3{padding:24px;display:grid;gap:10px;align-content:start}
+.f3 .n{font:500 12px/1 var(--mono);color:var(--ac);letter-spacing:.1em}
+.f3 p{color:var(--dim);font-size:15px}
+.f3 .vs{display:flex;gap:8px;align-items:center;font:500 11.5px/1.3 var(--mono);color:var(--faint);margin-top:4px}
+.f3 .vs span{padding:6px 10px;border:1px solid var(--line);border-radius:999px}
+
+/* process */
+.proc{padding:30px;margin-top:48px}
+.stp{display:grid;grid-template-columns:repeat(5,1fr);gap:0;position:relative;margin-bottom:28px}
+.stp::before{content:"";position:absolute;left:10%;right:10%;top:21px;height:3px;border-radius:2px;background:var(--line2)}
+.stp::after{content:"";position:absolute;left:10%;top:21px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--ac),var(--ok));width:calc(var(--p,0)*80%);transition:width .6s cubic-bezier(.22,1,.36,1)}
+.stp button{position:relative;z-index:1;background:none;border:0;display:grid;justify-items:center;gap:10px;padding:0 4px;color:var(--dim);font:600 13.5px/1.2 var(--body)}
+.stp button i{width:44px;height:44px;border-radius:50%;border:2px solid var(--line2);background:var(--bg);display:grid;place-items:center;font:600 12px/1 var(--mono);font-style:normal;transition:all .4s cubic-bezier(.22,1,.36,1)}
+.stp button.past i{border-color:var(--ac);color:var(--ac)}
+.stp button.on{color:var(--ink)}
+.stp button.on i{background:var(--ac);border-color:var(--ac);color:var(--ac-ink);transform:scale(1.14);box-shadow:0 0 0 8px color-mix(in srgb,var(--ac) 22%,transparent)}
+.pp{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:14px;animation:swap .5s cubic-bezier(.22,1,.36,1)}
+.pp>div{padding:20px;border-radius:18px;background:var(--card2)}
+.pp h4{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:12px}
+.pp p,.pp li{color:var(--dim);font-size:15px}
+.pp ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.pp li{display:grid;grid-template-columns:16px 1fr;gap:8px}.pp li::before{content:"→";color:var(--ac);font-family:var(--mono)}
+.pp .big{font:700 1.5rem/1.15 var(--disp);color:var(--ink);letter-spacing:-.02em;margin-bottom:10px;display:block}
+.pp .gate{background:color-mix(in srgb,var(--ac) 12%,transparent)}
+.pp .gate p{color:var(--ink)}
+.assume{margin-top:14px;padding:22px 26px;display:grid;grid-template-columns:minmax(0,15rem) 1fr;gap:26px;align-items:start}
+.assume b{font:700 1.15rem/1.25 var(--disp)}.assume p{color:var(--dim);font-size:15px;margin-top:8px}
+.assume ul{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.assume li{font-size:14.5px;color:var(--dim);padding:14px;border-radius:14px;background:var(--card2)}.assume li strong{color:var(--ink);display:block;margin-bottom:4px}
+
+/* prototype */
+.proto{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:56px;align-items:start;margin-top:48px}
+.proto-l{position:sticky;top:110px;display:grid;justify-items:center;gap:18px}
+.proto-l .ph{--w:330px}
+.demo{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:380px;min-height:42px;align-items:center}
+.demo .lab{width:100%;text-align:center}
+.demo.hide{visibility:hidden}
+.ms{padding:26px}
+.ms-h{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:14px}
+.ms-h h3{font-size:1.5rem}
+.pbar{height:6px;border-radius:3px;background:var(--line2);overflow:hidden;margin-bottom:18px}
+.pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ac),var(--ok));transition:width .6s cubic-bezier(.22,1,.36,1)}
+.mis{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.mis li{display:grid;grid-template-columns:34px 1fr auto;gap:14px;align-items:center;padding:14px 16px;border-radius:16px;background:var(--card2);border:1px solid transparent;transition:all .4s}
+.mis li .ck{width:30px;height:30px;border-radius:50%;border:2px solid var(--line2);display:grid;place-items:center;color:transparent;transition:all .4s;font-size:15px}
+.mis li strong{display:block;font-weight:600}.mis li span{color:var(--dim);font-size:14px}
+.mis li button{padding:8px 12px;border-radius:999px;border:1px solid var(--line2);background:transparent;font:600 12px/1 var(--body);color:var(--dim)}
+.mis li button:hover{color:var(--ink);border-color:var(--ink)}
+.mis li.done{border-color:color-mix(in srgb,var(--ok) 45%,transparent);background:color-mix(in srgb,var(--ok) 9%,transparent)}
+.mis li.done .ck{background:var(--ok);border-color:var(--ok);color:var(--bg)}
+.win{display:none;margin-top:14px;padding:16px 18px;border-radius:16px;background:color-mix(in srgb,var(--ok) 12%,transparent);border:1px solid color-mix(in srgb,var(--ok) 40%,transparent);animation:swap .5s}
+.win.on{display:block}
+.pn{margin-top:14px;padding:26px}
+.pn h3{font-size:1.4rem;margin-bottom:4px}
+.pn .sub{color:var(--dim);font-size:14.5px;margin-bottom:14px}
+.notes{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.notes li{display:grid;grid-template-columns:28px 1fr;gap:12px;padding:12px 14px;border-radius:14px;border:1px solid transparent;transition:all .3s}
+.notes li:hover{background:var(--card2);border-color:var(--line)}
+.notes li b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--ac);color:var(--ac-ink);font:700 11px/1 var(--mono)}
+.notes li strong{display:block;font-weight:600}.notes li span{color:var(--dim);font-size:14.5px}
+.swp{animation:swap .45s cubic-bezier(.22,1,.36,1)}
+
+/* system widgets */
+.sys{display:grid;gap:14px;margin-top:48px}
+.w{padding:30px}
+.w-h{display:grid;grid-template-columns:1fr 1.15fr;gap:40px;align-items:start}
+.w-h h3{font-size:clamp(1.6rem,2.8vw,2.2rem);margin:12px 0}
+.w-h p{color:var(--dim)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;transition:filter .5s}
+.day{display:grid;justify-items:center;gap:8px;padding:12px 0;border-radius:14px;background:var(--card2);border:1px solid transparent;transition:all .35s;font:600 16px/1 var(--disp);position:relative}
+.day small{font:500 10px/1 var(--mono);letter-spacing:.08em;color:var(--faint);text-transform:uppercase}
+.day i{width:10px;height:10px;border-radius:50%;background:var(--c);transition:all .3s}
+.week.shapes .day[data-s="my"] i{border-radius:2px}.week.shapes .day[data-s="less"] i{border-radius:0;clip-path:polygon(50% 0,100% 100%,0 100%);width:12px}.week.shapes .day[data-s="na"] i{border-radius:0;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);width:12px;height:12px}.week.shapes .day[data-s="open"] i{background:none;border:2px solid var(--c);width:11px;height:11px}
+.week[data-f] .day{opacity:.28;transform:scale(.96)}
+.week[data-f="av"] .day[data-s="av"],.week[data-f="my"] .day[data-s="my"],.week[data-f="less"] .day[data-s="less"],.week[data-f="na"] .day[data-s="na"],.week[data-f="open"] .day[data-s="open"]{opacity:1;transform:scale(1.06);border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent)}
+.day[data-s="av"]{--c:var(--s-av)}.day[data-s="my"]{--c:var(--s-my)}.day[data-s="less"]{--c:var(--s-less)}.day[data-s="na"]{--c:var(--s-na)}.day[data-s="open"]{--c:var(--s-open)}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.lg{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border-radius:999px;border:1px solid var(--line2);background:transparent;font:500 13px/1 var(--body);color:var(--dim);transition:all .3s}
+.lg i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.lg:hover,.lg[aria-pressed="true"]{color:var(--ink);border-color:var(--c);background:color-mix(in srgb,var(--c) 12%,transparent)}
+.lg[data-s="av"]{--c:var(--s-av)}.lg[data-s="my"]{--c:var(--s-my)}.lg[data-s="less"]{--c:var(--s-less)}.lg[data-s="na"]{--c:var(--s-na)}.lg[data-s="open"]{--c:var(--s-open)}
+.def{margin-top:14px;min-height:46px;font-size:15px;color:var(--dim)}
+.opts{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px;align-items:center}
+.opts label{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--dim)}
+.opts select{background:var(--card2);color:var(--ink);border:1px solid var(--line2);border-radius:10px;padding:8px 10px;font:inherit}
+.pl{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:stretch}
+.pl .in{display:grid;gap:16px;align-content:start}
+.pl .grp .seg{margin-top:8px}
+.pl .out{padding:20px;border-radius:20px;background:#F5F6FA;color:#1D2433;font-family:Inter,system-ui,sans-serif;display:grid;gap:12px;align-content:start}
+.pl .out .rg{display:flex;gap:14px;align-items:center}
+.pl .out svg{width:66px;height:66px;flex:none}
+.pl .out .t{font-weight:700;font-size:15px}
+.pl .out .h{font-size:12.5px;color:#6B7384;margin-top:2px;min-height:18px}
+.pl .out .h.w{color:#9A5B00;font-weight:600}
+.pl .out button.cta{height:46px;border-radius:12px;border:0;background:#4B2A86;color:#fff;font:700 14px Inter,system-ui;transition:all .3s}
+.pl .out button.cta[disabled]{opacity:.38;cursor:not-allowed}
+.pl .mg{padding:12px 14px;border-radius:12px;background:#fff;border:1px solid #E7E9F0;font-size:12.5px;color:#4a5262}
+.pl .mg b{color:#1D2433}
+.trace{margin-top:18px;padding:16px;border-radius:16px;background:var(--card2);font:500 12.5px/1.8 var(--mono);color:var(--faint)}
+.trace div{transition:color .3s}.trace div.hit{color:var(--ink)}.trace div.hit::before{content:"▸ ";color:var(--ac)}
+.lc{display:grid;gap:22px}
+.flow{display:grid;grid-template-columns:auto 22px auto 22px auto 36px 1fr;gap:6px;align-items:center}
+.flow .ar{height:2px;background:var(--line2);position:relative}
+.flow .ar::after{content:"";position:absolute;right:-1px;top:-3px;border:4px solid transparent;border-left:7px solid var(--line2)}
+.flow .ar.live::before{content:"";position:absolute;left:0;top:-2px;width:6px;height:6px;border-radius:50%;background:var(--ac);animation:run 1.3s linear infinite}
+@keyframes run{from{left:0}to{left:100%}}
+.nodeb{padding:12px 15px;border-radius:14px;border:1.5px solid var(--line2);background:var(--card2);font:600 13.5px/1.1 var(--body);color:var(--dim);text-align:left;transition:all .3s;min-width:0}
+.nodeb small{display:block;font:500 10px/1 var(--mono);color:var(--faint);margin-top:6px;letter-spacing:.06em}
+.nodeb:hover{color:var(--ink);border-color:var(--ink)}
+.nodeb[aria-pressed="true"]{color:var(--ink);border-color:var(--c,var(--ac));background:color-mix(in srgb,var(--c,var(--ac)) 14%,transparent);box-shadow:0 0 0 4px color-mix(in srgb,var(--c,var(--ac)) 18%,transparent)}
+.outs{display:grid;gap:8px;position:relative;padding-left:20px}
+.outs::before{content:"";position:absolute;left:0;top:18px;bottom:18px;width:2px;background:var(--line2);border-radius:2px}
+.outs .nodeb{position:relative}
+.outs .nodeb::before{content:"";position:absolute;left:-20px;top:50%;width:20px;height:2px;background:var(--line2)}
+.lc-d{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;animation:swap .45s}
+.lc-d>div{padding:16px;border-radius:16px;background:var(--card2)}
+.lc-d h4{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.lc-d p{font-size:14.5px;color:var(--dim)}
+.lc-d .badge{display:inline-block;padding:6px 11px;border-radius:999px;font:700 12.5px/1 Inter,system-ui,sans-serif;background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--c);border:1px solid color-mix(in srgb,var(--c) 40%,transparent)}
+
+/* decisions */
+.dec{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:48px}
+.flip{perspective:1400px;height:300px;cursor:pointer;border:0;background:none;padding:0;text-align:left;color:inherit}
+.flip .in{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .8s cubic-bezier(.22,1,.36,1)}
+.flip[aria-pressed="true"] .in{transform:rotateY(180deg)}
+.flip .f,.flip .b{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:24px;padding:28px;border:1px solid var(--line);background:var(--card);display:flex;flex-direction:column}
+.flip .b{transform:rotateY(180deg);background:var(--card2)}
+.flip .num{font:500 12px/1 var(--mono);letter-spacing:.14em;color:var(--ac)}
+.flip h3{margin:14px 0 12px;font-size:1.6rem}
+.flip .f p{color:var(--dim);max-width:30ch}
+.flip .hint{margin-top:auto;font:500 11.5px/1 var(--mono);letter-spacing:.08em;color:var(--faint)}
+.flip .b dl{margin:0;display:grid;gap:12px}
+.flip .b dt{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.flip .b dd{margin:5px 0 0;font-size:14.5px;color:var(--dim)}
+.flip .b dd.rej{text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--bad) 70%,transparent)}
+.flip .b dd.why{color:var(--ink)}
+.cmp{margin-top:14px;padding:34px 20px 44px;display:grid;justify-items:center;gap:40px;position:relative}
+.cmp-h{text-align:center;max-width:36rem}
+.cmp-h h3{font-size:1.7rem;margin:10px 0 8px}.cmp-h p{color:var(--dim)}
+.cmp-stage{position:relative;width:min(330px,100%)}
+.cmp-stage .ph{--w:330px;width:100%}
+.cmp-stage .after{position:absolute;inset:0}
+.cmp-stage .before{clip-path:inset(0 0 0 50%)}
+.cmp-stage .rng{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;z-index:6;margin:0}
+.cmp-stage .hnd{position:absolute;top:0;bottom:0;left:50%;width:3px;margin-left:-1.5px;background:var(--ac);z-index:5;pointer-events:none;box-shadow:0 0 18px var(--ac)}
+.cmp-stage .hnd::after{content:"⇆";position:absolute;top:50%;left:50%;width:38px;height:38px;margin:-19px;border-radius:50%;background:var(--ac);color:var(--ac-ink);display:grid;place-items:center;font-weight:700}
+.cmp-stage .tg{position:absolute;top:-30px;font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.cmp-stage .tg.l{left:6px}.cmp-stage .tg.r{right:6px}
+
+/* impact */
+.imp{display:grid;grid-template-columns:1fr 1.1fr;gap:14px;margin-top:48px}
+.deltas{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:26px;align-content:start}
+.dlt{padding:18px;border-radius:18px;background:var(--card2)}
+.dlt .row{display:flex;align-items:baseline;gap:8px;font:700 2.2rem/1 var(--disp);letter-spacing:-.03em}
+.dlt .row i{font:500 1rem/1 var(--mono);color:var(--ac);font-style:normal}
+.dlt p{margin-top:10px;color:var(--dim);font-size:14px;line-height:1.4}
+.met{padding:26px}
+.met .mp{display:grid;gap:14px;animation:swap .45s}
+.met .mp h4{font-size:1.5rem}
+.met dl{margin:0;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.met dl div{padding:14px;border-radius:14px;background:var(--card2)}
+.met dt{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.met dd{margin:8px 0 0;font-size:14.5px;color:var(--dim)}
+.met dd b{color:var(--ink)}
+.refl{display:grid;gap:10px;margin-top:14px}
+.acc{border:1px solid var(--line);border-radius:20px;background:var(--card);overflow:hidden;transition:background-color .5s}
+.acc button{width:100%;display:flex;justify-content:space-between;gap:20px;align-items:center;padding:22px 26px;background:none;border:0;text-align:left;font:700 1.15rem/1.25 var(--disp);letter-spacing:-.015em}
+.acc button i{width:30px;height:30px;border-radius:50%;border:1px solid var(--line2);display:grid;place-items:center;font-style:normal;transition:transform .4s,background .3s;flex:none}
+.acc[data-open="1"] button i{transform:rotate(45deg);background:var(--ink);color:var(--bg)}
+.acc .ab{display:grid;grid-template-rows:0fr;transition:grid-template-rows .5s cubic-bezier(.22,1,.36,1)}
+.acc[data-open="1"] .ab{grid-template-rows:1fr}
+.acc .ab>div{overflow:hidden}.acc .ab p{padding:0 26px 24px;color:var(--dim);max-width:60rem}
+.end{border-top:1px solid var(--line);padding:0}
+.end .wrap{display:flex;justify-content:space-between;gap:30px;align-items:end;flex-wrap:wrap;padding:100px 0 120px}
+.end h2{max-width:14ch}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+
+@media (max-width:1020px){
+  section{padding:84px 0}
+  .hero-g,.split,.proto,.w-h,.sd,.imp,.pl{grid-template-columns:1fr}
+  .proto-l{position:static}
+  .counts,.fails3{grid-template-columns:1fr 1fr}
+  .tl30 .pane ul,.lc-d,.assume ul,.pp,.assume{grid-template-columns:1fr}
+  .dec{grid-template-columns:1fr}
+  .flow{grid-template-columns:1fr;gap:10px}.flow .ar{width:2px;height:16px;margin-left:24px}.flow .ar::after{right:-3px;top:auto;bottom:-1px;border:4px solid transparent;border-top:7px solid var(--line2)}
+}
+@media (max-width:620px){
+  .wrap{width:calc(100% - 32px)}
+  .counts,.fails3,.deltas,.met dl,.persona .cols,.stage{grid-template-columns:1fr}
+  .hero{padding-top:104px}.hero-ph .ph{--w:290px}.proto-l .ph{--w:300px}
+  .stp button{font-size:11.5px}.stp button i{width:36px;height:36px}.stp::before,.stp::after{top:17px}
+  .flip{height:340px}
+  .track .tn small{display:none}.track .tn{font-size:11px}
+  .mis li{grid-template-columns:30px 1fr}.mis li button{grid-column:2;justify-self:start}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<main id="top">
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="overview" data-nav="Overview">
+  <div class="wrap">
+    <div class="hero-g">
+      <div>
+        <p class="eyebrow">Case study · Mobile app · Healthcare workforce</p>
+        <h1>Making a shift <em>impossible</em> to misread.</h1>
+        <p class="lede">Per-diem and contract clinicians check their phone between patients. They need three answers fast: what am I working, can I clock in, will these hours count. I designed the worker app so each answer has exactly one place to live.</p>
+        <dl class="meta">
+          <div><dt>Role</dt><dd>Senior UX Designer: flows, interaction design, states, prototype, handoff</dd></div>
+          <div><dt>Platform</dt><dd>iOS and Android worker app, part of a larger workforce platform</dd></div>
+          <div><dt>Users</dt><dd>Clinicians on shift, with schedulers and payroll on the other end of every punch</dd></div>
+          <div><dt>Constraints</dt><dd>One hand, short glances, patchy signal, hours that become pay</dd></div>
+        </dl>
+      </div>
+      <div class="hero-ph" id="heroPh">
+        <div class="ph"><div class="scr"><div id="heroApp"></div></div></div>
+        <span class="try"><i></i>Live prototype. Tap anything.</span>
+      </div>
+    </div>
+
+    <div class="card tl30 reveal">
+      <div class="lab">The 30-second version</div>
+      <div class="seg" id="seg30" role="tablist">
+        <button aria-selected="true" data-p="0">The problem</button><button aria-selected="false" data-p="1">What I did</button><button aria-selected="false" data-p="2">Three moves</button><button aria-selected="false" data-p="3">What I can prove</button>
+      </div>
+      <div class="pane on"><p>Workers could not tell an assigned shift from an open one, a normal clock-in from a callback, or a pending day from a finished one. Every ambiguity became a message to a scheduler or an argument with payroll.</p></div>
+      <div class="pane"><p>I owned the worker app end to end: the journey from login to a closed timesheet, the state model behind every screen, interaction design for 84 screens, the clickable prototype, and the handoff file with empty, pop-up and success states.</p></div>
+      <div class="pane"><ul>
+        <li><b>Colour is the calendar</b>Five day states, one legend, one card. The tab changes the list, never the calendar.</li>
+        <li><b>The punch names its exception</b>Callback, location and approval are written on the card before the button is pressed.</li>
+        <li><b>A day says if it is finished</b>Five timesheet statuses share one layout. Edit is the only correction.</li>
+      </ul></div>
+      <div class="pane"><p>What the file shows: 84 screens, 5 calendar states, 5 timesheet statuses on one layout, 1 correction action instead of 2, a 4-module home cut to 2. What it does not show: adoption or time-saved figures. I do not publish numbers I cannot source, and the Impact section says how I would measure them.</p></div>
+    </div>
+
+    <div class="counts">
+      <div class="card count reveal"><b data-n="84">84</b><span>mobile screens, from first login to a closed timesheet</span></div>
+      <div class="card count reveal" style="--d:.07s"><b data-n="3">3</b><span>jobs for one calendar: My Shifts, Open Shifts, Availability</span></div>
+      <div class="card count reveal" style="--d:.14s"><b data-n="5">5</b><span>meanings one week can carry, each with its own colour</span></div>
+      <div class="card count reveal" style="--d:.21s"><b data-n="6">6</b><span>credential folders a facility can request into</span></div>
+    </div>
+    <p class="note reveal">Counts come from the design file. Facility and person names on screen are placeholders. Details are generalised.</p>
+  </div>
+</section>
+
+<!-- ============ CONTEXT ============ -->
+<section id="brief" data-nav="Context">
+  <div class="wrap">
+    <p class="eyebrow reveal">Context</p>
+    <div class="split">
+      <div class="reveal">
+        <h2>Three people read the same punch.</h2>
+        <p class="lede" style="margin-top:20px">A clock-in is not just the worker's. A scheduler reads it to run the floor, payroll reads it to pay. If the phone lets a worker be vague, the vagueness lands on someone else's desk. Pick a role to see what each screen must give them.</p>
+      </div>
+      <div class="card persona reveal">
+        <div class="seg" id="perSeg"><button aria-pressed="true" data-i="0">Clinician on shift</button><button aria-pressed="false" data-i="1">Scheduler</button><button aria-pressed="false" data-i="2">Payroll admin</button></div>
+        <div class="out" id="perOut"></div>
+      </div>
+    </div>
+
+    <div class="card scrub reveal">
+      <div class="head"><div><div class="lab">A shift, hour by hour</div><h3 style="margin-top:10px">Drag through the day. Watch the question change.</h3></div></div>
+      <div class="track" id="track"><div class="rail"></div><div class="fill" id="tfill"></div></div>
+      <input type="range" id="scrub" min="0" max="5" step="1" value="0" aria-label="Moment in the shift">
+      <div class="stage" id="stage"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROBLEM ============ -->
+<section id="problem" data-nav="Problem" style="background:linear-gradient(180deg,transparent,var(--bg2) 10%,var(--bg2) 90%,transparent)">
+  <div class="wrap">
+    <p class="eyebrow reveal">The problem</p>
+    <h2 class="reveal" style="max-width:16ch">The calendar is not the job.</h2>
+    <p class="lede reveal" style="margin-top:20px">A shift fails in three places. They only look like one problem until you put them on the same small screen. The first one you can feel right now.</p>
+
+    <div class="card sd reveal">
+      <div>
+        <div class="lab">Try it · failure 01</div>
+        <h3 style="margin-top:10px">Which of these is already yours?</h3>
+        <p>Both cards sit in the same list. One is assigned to you, one is up for grabs. Pick the assigned one.</p>
+        <div class="res" id="sdRes" aria-live="polite"></div>
+        <div class="tools"><button class="btn" id="sdFix">Apply the fix</button><button class="btn" id="sdAgain">Shuffle</button></div>
+      </div>
+      <div class="mini old" id="sdMini"></div>
+    </div>
+
+    <div class="fails3">
+      <article class="card f3 reveal"><span class="n">01 · ASSIGNED OR OPEN</span><h3>Same card, same list.</h3><p>If only a label changes, workers accept the wrong thing or miss a shift that still needs them.</p><div class="vs"><span>Mine</span>≠<span>Up for grabs</span></div></article>
+      <article class="card f3 reveal" style="--d:.08s"><span class="n">02 · A PUNCH IS A CLAIM</span><h3>Vague punches become arguments.</h3><p>Location can be off. A callback is not a normal start. A manager still has to approve. Explore this in System.</p><div class="vs"><span>Clocked in</span>≠<span>Trusted</span></div></article>
+      <article class="card f3 reveal" style="--d:.16s"><span class="n">03 · HOURS ARE NOT A DAY</span><h3>On the clock is not finished.</h3><p>Pending, no-show and partial each need a different next step, or payroll becomes a negotiation.</p><div class="vs"><span>Hours logged</span>≠<span>Hours counted</span></div></article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROCESS ============ -->
+<section id="process" data-nav="Process">
+  <div class="wrap">
+    <p class="eyebrow reveal">Process</p>
+    <h2 class="reveal" style="max-width:17ch">Enumerate the states first. Then draw.</h2>
+    <p class="lede reveal" style="margin-top:20px">The riskiest thing in a time-and-pay app is a state nobody designed. I listed every state a day can be in before drawing a screen, and treated each unanswered question as a bug.</p>
+    <div class="card proc reveal">
+      <div class="stp" id="stp"></div>
+      <div id="pp"></div>
+    </div>
+    <div class="card assume reveal">
+      <div><b>What I assumed, and how I would test it</b><p>I worked from the flow and the platform rules, so I wrote my assumptions as testable claims instead of passing them off as findings.</p></div>
+      <ul>
+        <li><strong>Glanceable beats complete</strong>Workers open the app for seconds. Test: time-to-answer on three tasks.</li>
+        <li><strong>Colour alone is not enough</strong>Five states need a second cue. Test: the colour-vision check in System.</li>
+        <li><strong>Callback is common enough</strong>It earns its own button. Test: share of punches that are callbacks.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROTOTYPE ============ -->
+<section id="prototype" data-nav="Prototype" style="background:linear-gradient(180deg,transparent,var(--bg2) 10%,var(--bg2) 90%,transparent)">
+  <div class="wrap">
+    <p class="eyebrow reveal">Prototype</p>
+    <h2 class="reveal" style="max-width:15ch">Do the job. Do not read about it.</h2>
+    <p class="lede reveal" style="margin-top:20px">This is the flow rebuilt as a working app with shared state. Complete the four missions and every screen you pass is a decision from this case study.</p>
+    <div class="proto">
+      <div class="proto-l reveal">
+        <div class="ph"><div class="scr"><div id="protoApp"></div></div></div>
+        <div class="demo hide" id="demo"></div>
+      </div>
+      <div>
+        <div class="card ms reveal">
+          <div class="ms-h"><h3>Four missions</h3><button class="btn" id="rst" style="padding:9px 14px;font-size:13px">Reset</button></div>
+          <div class="pbar"><i id="mbar"></i></div>
+          <ul class="mis" id="mis"></ul>
+          <div class="win" id="win"><b>You walked the whole path.</b> From an open shift to a shared credential, nothing asked you to guess.</div>
+        </div>
+        <div class="card pn reveal" id="pn" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SYSTEM ============ -->
+<section id="system" data-nav="System">
+  <div class="wrap">
+    <p class="eyebrow reveal">The system behind it</p>
+    <h2 class="reveal" style="max-width:18ch">Three rules the screens quietly enforce.</h2>
+    <div class="sys">
+
+      <div class="card w reveal">
+        <div class="w-h">
+          <div><div class="lab">Rule 01 · Colour is the calendar</div><h3>Five states, readable at a glance, and readable without colour.</h3><p>Blue is assigned, red is open, teal is available, violet is less preferred, amber is N/A. Filter a state, then run the week through a colour-vision simulation. If the legend were the only cue, this would break. That is the gap I would close next.</p></div>
+          <div>
+            <div class="week" id="week">
+              <div class="day" data-s="av"><small>Su</small>10<i></i></div><div class="day" data-s="av"><small>Mo</small>11<i></i></div><div class="day" data-s="my"><small>Tu</small>12<i></i></div><div class="day" data-s="open"><small>We</small>13<i></i></div><div class="day" data-s="less"><small>Th</small>14<i></i></div><div class="day" data-s="na"><small>Fr</small>15<i></i></div><div class="day" data-s="av"><small>Sa</small>16<i></i></div>
+            </div>
+            <div class="legend" id="legend">
+              <button class="lg" data-s="av" aria-pressed="false"><i></i>Available</button><button class="lg" data-s="my" aria-pressed="false"><i></i>My shift</button><button class="lg" data-s="less" aria-pressed="false"><i></i>Less preferred</button><button class="lg" data-s="na" aria-pressed="false"><i></i>N/A</button><button class="lg" data-s="open" aria-pressed="false"><i></i>Open</button>
+            </div>
+            <p class="def" id="def">Choose a state to see which days carry it.</p>
+            <div class="opts"><label>View as <select id="cvd"><option value="none">Typical vision</option><option value="deut">Deuteranopia</option><option value="prot">Protanopia</option><option value="tri">Tritanopia</option><option value="gray">No colour</option></select></label><label><input type="checkbox" id="shp"> Add shapes (proposed fix)</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card w reveal">
+        <div class="w-h">
+          <div><div class="lab">Rule 02 · A punch names its exception</div><h3>Change the conditions. Watch the screen tell the truth.</h3><p>The punch card is a small decision table. Whatever is true about the shift, location and approval is written on the card before the button is pressed, and the manager sees the same facts afterwards.</p>
+            <div class="trace" id="trace"></div></div>
+          <div class="pl">
+            <div class="in">
+              <div class="grp"><span class="lab">Shift type</span><div class="seg" data-g="type"><button aria-pressed="true" data-v="sched">Scheduled</button><button aria-pressed="false" data-v="call">Callback</button></div></div>
+              <div class="grp"><span class="lab">Location tracking</span><div class="seg" data-g="loc"><button aria-pressed="true" data-v="on">On</button><button aria-pressed="false" data-v="off">Off</button></div></div>
+              <div class="grp"><span class="lab">Manager approval</span><div class="seg" data-g="appr"><button aria-pressed="true" data-v="yes">Approved</button><button aria-pressed="false" data-v="no">Not yet</button></div></div>
+            </div>
+            <div class="out" id="pOut"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card w reveal">
+        <div class="lc">
+          <div><div class="lab">Rule 03 · A day says if it is finished</div><h3 style="font-size:clamp(1.6rem,2.8vw,2.2rem);margin:12px 0">One layout. Five statuses. Click any node.</h3><p style="max-width:46rem;color:var(--dim)">Every day ends in exactly one status, and every status has a defined next step. The layout never changes, so workers learn it once.</p></div>
+          <div class="flow" id="flow"></div>
+          <div class="lc-d" id="lcd"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DECISIONS ============ -->
+<section id="decisions" data-nav="Decisions" style="background:linear-gradient(180deg,transparent,var(--bg2) 10%,var(--bg2) 90%,transparent)">
+  <div class="wrap">
+    <p class="eyebrow reveal">Decisions and trade-offs</p>
+    <h2 class="reveal" style="max-width:17ch">What I chose, and what it cost.</h2>
+    <p class="lede reveal" style="margin-top:20px">Click a card to flip it. Every decision removed something, and I try to say what.</p>
+    <div class="dec" id="dec"></div>
+    <div class="card cmp reveal">
+      <div class="cmp-h"><div class="lab">Drag to compare</div><h3>A home that answers everything, versus one that leads.</h3><p>The early home stacked four modules. The current one keeps two, and the shift list keeps its own tab.</p></div>
+      <div class="cmp-stage" id="cmp">
+        <span class="tg l">Now</span><span class="tg r">Before · retired</span>
+        <div class="ph after"><div class="scr"><div id="cmpA"></div></div></div>
+        <div class="ph before" id="cmpBw"><div class="scr"><div id="cmpB"></div></div></div>
+        <div class="hnd" id="cmpH"></div>
+        <input class="rng" id="cmpR" type="range" min="0" max="100" value="50" aria-label="Compare before and after">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ IMPACT ============ -->
+<section id="impact" data-nav="Impact">
+  <div class="wrap">
+    <p class="eyebrow reveal">Impact</p>
+    <h2 class="reveal" style="max-width:18ch">What I can claim, and how I would prove the rest.</h2>
+    <p class="lede reveal" style="margin-top:20px">I do not have adoption data to publish, so I will not invent it. What I can show is what the design removed, and a measurement plan a team could run.</p>
+    <div class="imp">
+      <div class="card deltas reveal">
+        <div class="dlt"><div class="row"><span>4</span><i>→</i><span>2</span></div><p>modules on Home: clock-in ring, wages, hours chart and schedules, down to announcements and the week</p></div>
+        <div class="dlt"><div class="row"><span>2</span><i>→</i><span>1</span></div><p>ways to correct hours: dispute and edit became edit</p></div>
+        <div class="dlt"><div class="row"><span>5</span><i>→</i><span>1</span></div><p>timesheet layouts: five statuses share one structure</p></div>
+        <div class="dlt"><div class="row"><span>2</span><i>→</i><span>1</span></div><p>calendars: My Shifts and Open Shifts share one week</p></div>
+      </div>
+      <div class="card met reveal">
+        <div class="lab">How I would know it works</div>
+        <div class="seg" id="metSeg" style="margin:14px 0 20px"></div>
+        <div class="mp" id="metOut"></div>
+      </div>
+    </div>
+    <div class="refl">
+      <p class="eyebrow reveal" style="margin:56px 0 8px">What I would do differently</p>
+      <div class="acc reveal" data-open="0"><button aria-expanded="false">Test the legend with colour-blind workers and add a second cue.<i>+</i></button><div class="ab"><div><p>Five colours on one week is the design's biggest bet and its biggest accessibility risk. The text legend helps, but a glyph on each day would make the state readable without colour. I would test both versions before any further visual polish.</p></div></div></div>
+      <div class="acc reveal" data-open="0"><button aria-expanded="false">Design the offline punch.<i>+</i></button><div class="ab"><div><p>Clinicians work in basements and stairwells. A punch that cannot reach the server should be queued, labelled as such, and reconciled later. The current flow names location problems but does not yet name connectivity ones.</p></div></div></div>
+      <div class="acc reveal" data-open="0"><button aria-expanded="false">Instrument it before arguing about it.<i>+</i></button><div class="ab"><div><p>The four events in the plan above are cheap to add and would turn every future design debate into a data question. I would ship the instrumentation with the first release, not after it.</p></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="end">
+  <div class="wrap">
+    <h2 class="reveal">Next: an AI that shows its work.</h2>
+    <div class="btns reveal"><a class="btn pri" href="./designing-trust-ai-hiring.html">Read the case study →</a><a class="btn" href="./index.html#work">All work</a></div>
+  </div>
+</section>
+</main>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<filter id="f-deut"><feColorMatrix type="matrix" values="0.625 0.375 0 0 0  0.7 0.3 0 0 0  0 0.3 0.7 0 0  0 0 0 1 0"/></filter>
+<filter id="f-prot"><feColorMatrix type="matrix" values="0.567 0.433 0 0 0  0.558 0.442 0 0 0  0 0.242 0.758 0 0  0 0 0 1 0"/></filter>
+<filter id="f-tri"><feColorMatrix type="matrix" values="0.95 0.05 0 0 0  0 0.433 0.567 0 0  0 0.475 0.525 0 0  0 0 0 1 0"/></filter>
+<filter id="f-gray"><feColorMatrix type="matrix" values="0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0 0 0 1 0"/></filter>
+</defs></svg>
+
+<script src="./shell.js?v=8"></script>
+<script src="./shift-app.js?v=v2"></script>
+<script src="./shift-case.js?v=1"></script>
+<script src="./case-i18n.js?v=1" defer></script>
+</body>
+</html>

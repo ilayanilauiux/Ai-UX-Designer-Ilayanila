@@ -1,0 +1,4 @@
+/* Theme system for pages designed light-only (paper) */
+html.paper[data-theme="dark"] { color-scheme: dark; --vt:#ff8a5c; --p:#111110; --i:#ece8df; --l:rgba(236,232,223,.18); --m:rgba(236,232,223,.72); --card:rgba(236,232,223,.06); background:#111110; }
+html.paper[data-theme="light"] { color-scheme: light; --p:#f9f9f6; --card:rgba(17,17,16,.035); --l:rgba(17,17,16,.12); --m:rgba(17,17,16,.72); background:#f9f9f6; }
+html.paper body { transition: background-color .5s ease, color .5s ease; }

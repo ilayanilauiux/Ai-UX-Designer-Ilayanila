@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="stylesheet" href="./shell.css?v=8"><script src="./shell-boot.js?v=4"></script><script src="./tr-boot.js"></script><link rel="stylesheet" href="./themes.css?v=2"><script>document.documentElement.classList.add("paper")</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>From a single dashboard to role-specific operating views — Ilayanila M</title>
+  <meta name="description" content="How client, vendor, and MSP dashboards in Simplify VMS share one shell and answer three different operating questions." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./simplify-case.css?v=txn3" />
+  <script>
+    try {
+        
+        var lang = localStorage.getItem("lang");
+        if (lang !== "de" && lang !== "ar") lang = "en";
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+        if (lang !== "en") {
+          document.documentElement.classList.add("i18n-pending");
+          var antiFlash = document.createElement("style");
+          antiFlash.textContent = "html.i18n-pending body{visibility:hidden}";
+          document.head.appendChild(antiFlash);
+        }
+    } catch (e) {}
+  </script>
+</head>
+<body class="sc">
+<script src="./shell.js?v=8"></script>
+  <a class="skip" href="#context" data-i18n="Skip to context">Skip to context</a>
+  <header class="nav">
+    <a class="logo" href="./index.html">ILAYANILA M</a>
+    <button class="nav-toggle" type="button" data-i18n-aria="Open menu" aria-label="Open menu" aria-expanded="false"><span></span><span></span></button>
+    <nav class="nav-links" data-i18n-aria="Case study" aria-label="Case study">
+      <a href="./simplify-vms.html" data-i18n="Overview">Overview</a>
+      <a href="./simplify-vms-ai.html" data-i18n="Hiring decision">Hiring decision</a>
+      <a href="./simplify-vms-personas.html" aria-current="page" data-i18n="Operating views">Operating views</a>
+      <a href="./simplify-vms-after.html" data-i18n="Assignment">Assignment</a>
+    </nav>
+  </header>
+  <main class="sc-main">
+    <header class="sc-hero">
+      <div>
+        <p class="sc-kicker">02 — Operating views</p>
+        <h1 class="sc-title">From a single dashboard to role-specific operating views</h1>
+        <p class="sc-lead">Client, vendor, and MSP were opening one shell for three different accountabilities. I kept the shell and let the role decide which question it answers.</p>
+      </div>
+    </header>
+    <div class="sc-layout">
+      <nav class="sc-index" aria-label="On this page">
+        <a href="#context">01 Context</a>
+        <a href="#decision">02 Decision</a>
+        <a href="#scope">03 Scope</a>
+        <a href="#reflection">04 Reflection</a>
+      </nav>
+      <div>
+        <section class="sc-band" id="context">
+          <p class="sc-kicker">Context</p>
+          <h2>Three jobs, one product</h2>
+          <p>Simplify is a vendor management system for contingent labor. The client buys the labor. The vendor sends people. The MSP runs the program for the client. Those are the product’s own distinctions. I did not run a separate persona study for this page.</p>
+          <dl class="sc-facts">
+            <div><dt>Role</dt><dd>Senior UX</dd></div>
+            <div><dt>Product</dt><dd>Simplify VMS</dd></div>
+            <div><dt>When</dt><dd>Nov 2024 – Present</dd></div>
+            <div><dt>For</dt><dd>Client, vendor, and MSP</dd></div>
+          </dl>
+        </section>
+        <section class="sc-band" id="decision">
+          <p class="sc-kicker">Decision</p>
+          <h2>One shell. The question changes.</h2>
+          <p>Designs 3.0 puts Client, Vendor, and MSP on the same structure: counts, a distribution, a calendar, and pending actions. A widget configuration lets someone pick and order what stays on the view, including Quick Links, Calendar, and Pending Actions. Choosing a role here rearranges that shell. It does not open a second product.</p>
+          <div class="sc-stage" data-persona>
+            <div class="sc-roles" role="group" aria-label="Operating role">
+              <button type="button" data-role="client" aria-pressed="true">Client</button>
+              <button type="button" data-role="vendor" aria-pressed="false">Vendor</button>
+              <button type="button" data-role="msp" aria-pressed="false">MSP</button>
+            </div>
+            <div class="shell sc-mock">
+              <p data-question class="sc-lead"></p>
+              <div class="shell-counts" data-counts></div>
+              <div class="shell-cal" data-calendar aria-label="Calendar"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            </div>
+          </div>
+        </section>
+        <section class="sc-band" id="scope">
+          <p class="sc-kicker">Scope</p>
+          <h2>The questions, in the product’s words</h2>
+          <ul class="sc-list">
+            <li><strong>Client</strong>Is this program healthy? The buyer needs hiring, compliance, reporting, and invoicing under control.</li>
+            <li><strong>Vendor</strong>Which jobs can I fill, and how do I stand? Supplier scorecards are how standing is shown.</li>
+            <li><strong>MSP</strong>What needs a decision today, across this client’s suppliers? The MSP operates the system. The software is not the MSP.</li>
+          </ul>
+          <p>The same board also holds a worker dashboard, a calendar widget, events, schedule selections, theme variations, and an earlier design pass. Those are context. They are not three more case studies. This page has no outcome percentages. The published interview figures belong to the hiring decision.</p>
+        </section>
+        <section class="sc-band" id="reflection">
+          <p class="sc-kicker">Reflection</p>
+          <h2>What had to change</h2>
+          <div class="sc-reflect">
+            <p>The shell can be shared. The question cannot.</p>
+            <p>Widget configuration is how a role keeps the pieces it is accountable for.</p>
+            <p>I designed three jobs in one product, not three products.</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <script src="./i18n.js?v=lang2"></script>
+  <script src="./simplify-case.js?v=sh2"></script>
+<script src="./case-i18n.js?v=1" defer></script>
+</body>
+</html>
