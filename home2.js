@@ -387,6 +387,20 @@
     var top = $("[data-top]"); if (top) top.addEventListener("click", function () { scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }); });
   }
 
+
+  /* CV download: a plain link on the live site; inside the artifact viewer it goes through the downloads capability */
+  doc.addEventListener("click", async function (e) {
+    var a = e.target.closest && e.target.closest("a[download]");
+    if (!a || !window.claude || typeof window.claude.use !== "function") return;
+    e.preventDefault();
+    try {
+      var dl = await window.claude.use("downloads");
+      if (!dl) { window.open(a.href, "_blank"); return; }
+      var res = await fetch(a.getAttribute("href")), blob = await res.blob();
+      await dl.save({ filename: a.getAttribute("download") || "Ilayanila-M-CV.pdf", data: blob });
+    } catch (err) { /* declined or unavailable */ }
+  });
+
   /* ---------- boot ---------- */
   function boot() {
     try {
