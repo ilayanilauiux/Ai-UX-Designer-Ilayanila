@@ -55,7 +55,7 @@
       @keyframes intro-failsafe { to { opacity: 0; visibility: hidden; pointer-events: none; } }
       @media (prefers-reduced-motion: reduce) { .intro-word.swap { animation: none; } .intro.out { transition-duration: .4s; } }
     </style>
-    <link rel="stylesheet" href="./home2.css?v=r2a" />
+    <link rel="stylesheet" href="./home3.css?v=r2b" />
   </head>
   <body data-page="home">
 <script src="./shell.js?v=8"></script>
@@ -72,67 +72,59 @@
     <div class="cur" aria-hidden="true"><span></span></div>
 
     <main id="top">
-      <!-- ============ HERO ============ -->
-      <section class="hero" data-hero>
-        <i class="orb o1" aria-hidden="true"></i>
-        <i class="orb o2" aria-hidden="true"></i>
-        <div class="wrap hero-in">
-          <div class="hero-chips" data-chips aria-hidden="true"></div>
-          <div class="hero-top" data-rv>
-            <span class="live"><i aria-hidden="true"></i><span data-availability></span></span>
+      <!-- ============ HERO: the scene ============ -->
+      <section class="hero3" data-hero aria-label="Introduction">
+        <div class="hero-pin">
+          <div class="scene" data-scene aria-hidden="false">
+            <div class="scene-box" data-box>
+              <div class="scene-art" data-art role="img" aria-label="Illustration of a designer sitting on a rock above a Chennai-style coast with a temple tower, a lighthouse and palm trees"></div>
+              <div class="pins" data-pins></div>
+            </div>
+            <div class="hero-fade" data-fade></div>
           </div>
-          <p class="mono hello" data-greeting data-rv></p>
-          <h1 class="hero-h" data-headline></h1>
-          <div class="hero-foot">
-            <p class="hero-cur" data-rv>
-              <span class="mono" data-h="Currently">Currently</span>
-              <b data-currently></b>
-            </p>
+          <div class="hero-copy wrap" data-copy>
+            <span class="live" data-rv><i aria-hidden="true"></i><span data-availability></span></span>
+            <p class="hello mono" data-greeting data-rv></p>
+            <h1 class="hero-h" data-headline></h1>
+          </div>
+          <div class="hero-bar" data-bar>
+            <div class="hb-l">
+              <p class="hero-sub" data-sub data-rv></p>
+              <div class="rail" data-rail aria-label="Career places"></div>
+            </div>
             <div class="hero-cta" data-rv>
               <a class="btn btn-solid" href="#work" data-magnetic><span data-h="View selected work">View selected work</span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg></a>
               <a class="btn btn-line" href="./assets/Ilayanila-M-CV.pdf" download="Ilayanila-M-CV.pdf" data-magnetic data-h="Download CV">Download CV</a>
             </div>
-            <a class="spin" href="#about" aria-label="Scroll" data-ha="Scroll" data-rv>
-              <svg viewBox="0 0 120 120" aria-hidden="true"><defs><path id="spinPath" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0"/></defs><text><textPath href="#spinPath" startOffset="0">Senior Product Designer · AI UX Engineer · </textPath></text></svg>
-              <b aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></b>
-            </a>
           </div>
+          <p class="hint mono" data-hint data-rv><span data-h="click a place">click a place</span></p>
+          <div class="fly" data-fly aria-hidden="true"><i></i><span data-h="scroll to fly in">scroll to fly in</span></div>
+          <div class="pop" data-pop role="dialog" aria-label="Career stop" hidden></div>
         </div>
       </section>
 
-      <!-- ============ MARQUEE ============ -->
-      <div class="marq" aria-hidden="true" dir="ltr">
-        <div class="marq-row big"><div class="marq-track" data-marq="-1" data-marq-speed="0.5"></div></div>
-        <div class="marq-row sm"><div class="marq-track" data-marq="1" data-marq-speed="0.35"></div></div>
-      </div>
-
-      <!-- ============ ABOUT ============ -->
-      <section class="sec" id="about">
+      <!-- ============ STORY ============ -->
+      <section class="sec story" id="about">
         <div class="wrap">
-          <div class="sec-h" data-rv>
-            <span class="mono idx" data-h="01 — About">01 — About</span>
-          </div>
-          <div class="about-grid">
-            <p class="about-lead" data-about></p>
-            <div class="about-side" data-rv>
-              <p class="about-val" data-value></p>
-              <div class="cta-row">
-                <a class="btn btn-line" href="./assets/Ilayanila-M-CV.pdf" download="Ilayanila-M-CV.pdf" data-magnetic data-h="Download CV">Download CV</a>
-              </div>
-            </div>
+          <div class="sec-h" data-rv><span class="mono idx" data-h="01 — About">01 — About</span></div>
+          <p class="about-lead" data-about></p>
+          <div class="about-side" data-rv>
+            <p class="about-val" data-value></p>
+            <div class="cta-row"><a class="btn btn-line" href="./assets/Ilayanila-M-CV.pdf" download="Ilayanila-M-CV.pdf" data-magnetic data-h="Download CV">Download CV</a></div>
           </div>
           <div class="stats" data-counters></div>
         </div>
       </section>
 
-      <!-- ============ WORK ============ -->
+      <!-- ============ WORK: the box ============ -->
       <section class="sec work" id="work">
         <div class="wrap">
-          <div class="sec-h" data-rv>
+          <div class="sec-h center" data-rv>
             <span class="mono idx" data-h="02 — Selected work">02 — Selected work</span>
-            <h2 class="h-lg" data-h="Selected work">Selected work</h2>
+            <h2 class="h-lg" data-h="Things I designed, and what they changed.">Things I designed, and what they changed.</h2>
+            <p class="lede" data-h="Real products. Pick a card from the box.">Real products. Pick a card from the box.</p>
           </div>
-          <div class="stack" data-projects></div>
+          <div class="box" data-projects></div>
         </div>
       </section>
 
@@ -149,39 +141,46 @@
         </div>
       </section>
 
-      <!-- ============ SKILLS ============ -->
-      <section class="sec" id="expertise">
-        <div class="wrap">
-          <div class="sec-h" data-rv>
-            <span class="mono idx" data-h="03 — Skills">03 — Skills</span>
-            <h2 class="h-lg" data-h="The craft, the method and the tools behind it.">The craft, the method and the tools behind it.</h2>
+      <!-- ============ JOURNEY (experience) ============ -->
+      <section class="journey" id="impact" data-journey aria-labelledby="jT">
+        <div class="jstick">
+          <div class="jmap" data-jmap aria-hidden="true"></div>
+          <div class="jhead">
+            <p class="mono idx" data-h="03 — Experience">03 — Experience</p>
+            <h2 id="jT" class="h-md" data-h="From mechanical engineering to enterprise AI.">From mechanical engineering to enterprise AI.</h2>
+            <p class="jsub" data-h="Six stops between 2013 and now. Scroll to walk the path.">Six stops between 2013 and now. Scroll to walk the path.</p>
           </div>
-          <div class="acc" data-skills></div>
+          <div class="jcard" data-jcard aria-live="polite"></div>
+          <div class="jdots" data-jdots role="tablist" aria-label="Career stops"></div>
+          <p class="jyear mono" data-jyear></p>
         </div>
       </section>
 
-      <!-- ============ EXPERIENCE ============ -->
-      <section class="sec" id="impact">
+      <!-- ============ TOOLKIT + SKILLS ============ -->
+      <section class="sec" id="expertise">
         <div class="wrap">
           <div class="sec-h" data-rv>
-            <span class="mono idx" data-h="04 — Experience">04 — Experience</span>
-            <h2 class="h-lg" data-h="Where I’ve designed.">Where I’ve designed.</h2>
+            <span class="mono idx" data-h="04 — Skills">04 — Skills</span>
+            <h2 class="h-lg" data-h="The craft, the method and the tools behind it.">The craft, the method and the tools behind it.</h2>
           </div>
-          <p class="lede" data-rv data-h="9+ years · product-based and service-based teams. Expand a role for résumé bullets.">9+ years · product-based and service-based teams. Expand a role for résumé bullets.</p>
-          <div class="acc acc-exp" data-experience></div>
+          <div class="tgrid" data-tools></div>
+          <div class="acc" data-skills></div>
           <div class="creds" data-creds></div>
         </div>
       </section>
 
-      <!-- ============ CONTACT ============ -->
+      <!-- ============ CONTACT: keycaps ============ -->
       <footer class="foot" id="contact">
+        <div class="foot-sky" aria-hidden="true"><i class="c1"></i><i class="c2"></i><i class="c3"></i></div>
         <div class="wrap">
-          <div class="sec-h" data-rv>
-            <span class="mono idx" data-h="05 — Contact">05 — Contact</span>
-          </div>
+          <div class="sec-h" data-rv><span class="mono idx" data-h="05 — Contact">05 — Contact</span></div>
           <h2 class="foot-h" data-foot-h></h2>
-          <a class="foot-mail" data-mail data-magnetic data-rv></a>
-          <div class="kcards" data-contact-row data-rv></div>
+          <p class="foot-sub" data-rv data-h="Open to product design and AI UX roles: USA, Europe, UAE and remote.">Open to product design and AI UX roles: USA, Europe, UAE and remote.</p>
+          <div class="keys-panel" data-rv>
+            <p class="mono keys-hint" data-h="psst, these work on your keyboard too">psst, these work on your keyboard too</p>
+            <div class="keys" data-keys></div>
+          </div>
+          <div class="reach" data-reach data-rv></div>
           <div class="foot-bar" data-rv>
             <p class="mono" data-local-time role="timer" aria-live="off"></p>
             <button class="totop" type="button" data-top><span data-h="Back to top">Back to top</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
@@ -221,6 +220,6 @@
 
     <script defer src="./i18n.js?v=rw3"></script>
     <script defer src="./content.js?v=rw3"></script>
-    <script defer src="./home2.js?v=r2a"></script>
+    <script defer src="./home3.js?v=r2b"></script>
   </body>
 </html>
