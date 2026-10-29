@@ -4,6 +4,7 @@
 <link rel="stylesheet" href="./shell.css?v=8"><script src="./shell-boot.js?v=4"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0b0d" />
     <title data-i18n="Ilayanila M — Senior Product Designer & AI Experience Engineer">Ilayanila M — Senior Product Designer & AI Experience Engineer</title>
     <meta
       name="description"
@@ -15,168 +16,204 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Sans+Arabic:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap"
       rel="stylesheet"
     />
+    <!-- tiny glyph subsets for the multilingual intro (Arabic, Hindi, Tamil) -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@700&family=Noto+Sans+Tamil:wght@700&family=Noto+Sans+Arabic:wght@700&text=Hello%20Hallo%20Bonjour%20%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%E0%A4%A8%E0%A4%AE%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A5%87%20%E0%AE%B5%E0%AE%A3%E0%AE%95%E0%AF%8D%E0%AE%95%E0%AE%AE%E0%AF%8D&display=swap"
+      rel="stylesheet"
+    />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230B0C0E'/%3E%3Cpath d='M9 22V10M14 22V10l4.5 7L23 10v12' fill='none' stroke='%2300FF87' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="./styles.css?v=type3" />
-    <link rel="stylesheet" href="./enhance.css?v=c14" />
     <script>
       try {
-        if (null === "light") {
-          document.documentElement.setAttribute("data-theme", "light");
-        }
+        var d = document.documentElement;
+        d.classList.add("js");
         var lang = localStorage.getItem("lang");
         if (lang !== "de" && lang !== "ar") lang = "en";
-        document.documentElement.lang = lang;
-        document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
-        if (lang !== "en") {
-          document.documentElement.classList.add("i18n-pending");
-          var antiFlash = document.createElement("style");
-          antiFlash.textContent = "html.i18n-pending body{visibility:hidden}";
-          document.head.appendChild(antiFlash);
-        }
+        d.lang = lang;
+        d.dir = lang === "ar" ? "rtl" : "ltr";
+        if (lang !== "en") d.classList.add("i18n-pending");
+        /* the intro plays on a fresh visit; skip it when coming back from a case study or with a #section link */
+        var back = document.referrer && document.referrer.indexOf(location.origin) === 0 && !/\/(index\.html)?$/.test(document.referrer.split("#")[0].split("?")[0]);
+        if (location.hash || back || /[?&]nointro/.test(location.search)) d.classList.add("intro-skip");
+        else { d.classList.add("intro-lock"); setTimeout(function () { d.classList.remove("intro-lock"); }, 8000); }
       } catch (e) {}
     </script>
+    <style>
+      /* critical: the intro paints before anything else */
+      .intro { position: fixed; inset: 0; z-index: 10000; background: #0a0b0d; color: #f2f1ec; display: none; grid-template-rows: auto 1fr auto; padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(22px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); clip-path: inset(0 0 0 0); font-family: "IBM Plex Mono", ui-monospace, monospace; cursor: pointer; animation: intro-failsafe .01s linear 7s forwards; }
+      html.js.intro-lock .intro { display: grid; }
+      html.intro-lock { overflow: hidden; }
+      .intro-top, .intro-bot { display: flex; justify-content: space-between; gap: 16px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: rgba(242,241,236,.6); }
+      .intro-stage { display: grid; place-items: center; overflow: hidden; min-width: 0; }
+      .intro-word { display: block; font-family: "Bricolage Grotesque", "Noto Sans Devanagari", "Noto Sans Tamil", "Noto Sans Arabic", system-ui, sans-serif; font-weight: 700; font-size: clamp(60px, 17vw, 220px); line-height: 1.15; letter-spacing: -.035em; text-align: center; white-space: nowrap; padding-bottom: .06em; }
+      .intro-word::after { content: ""; display: inline-block; width: .14em; height: .14em; margin-inline-start: .06em; border-radius: 50%; background: #00ff87; }
+      .intro-word.swap { animation: iw .26s cubic-bezier(.16, 1, .3, 1); }
+      .intro-bar { position: absolute; inset-inline: 0; bottom: 0; height: 3px; background: rgba(242,241,236,.12); }
+      .intro-bar b { display: block; height: 100%; width: 100%; background: #00ff87; transform-origin: left; transform: scaleX(0); }
+      .intro.out { transition: clip-path 1s cubic-bezier(.76, 0, .24, 1); clip-path: inset(0 0 100% 0); }
+      .intro.out .intro-stage, .intro.out .intro-top, .intro.out .intro-bot { transition: opacity .35s, transform .7s cubic-bezier(.76, 0, .24, 1); opacity: 0; transform: translateY(-14%); }
+      @keyframes iw { from { opacity: 0; transform: translateY(32%); } to { opacity: 1; transform: none; } }
+      @keyframes intro-failsafe { to { opacity: 0; visibility: hidden; pointer-events: none; } }
+      @media (prefers-reduced-motion: reduce) { .intro-word.swap { animation: none; } .intro.out { transition-duration: .4s; } }
+    </style>
+    <link rel="stylesheet" href="./home2.css?v=r2a" />
   </head>
-  <body class="antialiased" data-page="home">
+  <body data-page="home">
 <script src="./shell.js?v=8"></script>
-    <a class="skip" href="#work" data-i18n="Skip to selected work">Skip to selected work</a>
-    <div class="loader" aria-hidden="true">
-      <div>
-        <b>Ilayanila M</b>
-        <p data-i18n="Senior Product Designer &amp; AI Experience Engineer">Senior Product Designer &amp; AI Experience Engineer</p>
-      </div>
+    <div class="intro" id="intro" aria-hidden="true">
+      <div class="intro-top"><span>Ilayanila M</span><span>Portfolio — 2026</span></div>
+      <div class="intro-stage"><span class="intro-word" id="introWord" lang="en">Hello</span></div>
+      <div class="intro-bot"><span><b id="introN">01</b> / 06</span><span id="introLang">English</span></div>
+      <i class="intro-bar"><b id="introBar"></b></i>
     </div>
-    <div class="grain" aria-hidden="true"></div>
-    <div class="cursor" aria-hidden="true"></div>
-    <div class="cursor-label" aria-hidden="true"></div>
-    <div class="scroll-progress" aria-hidden="true"></div>
+    <noscript><style>.intro{display:none!important}html.intro-lock{overflow:auto!important}</style></noscript>
 
-    <header class="nav">
-      <a class="logo" href="#top" aria-label="Ilayanila M, home"><svg class="monogram" viewBox="0 0 32 32" width="28" height="28" aria-hidden="true" focusable="false"><rect x="1" y="1" width="30" height="30" rx="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 22V10M14 22V10l4.5 7L23 10v12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>ILAYANILA M</span></a>
-      <button class="nav-toggle" data-i18n-aria="Open menu" aria-label="Open menu" aria-expanded="false">
-        <span></span><span></span>
-      </button>
-      <nav class="nav-links" data-i18n-aria="Primary" aria-label="Primary">
-        <a href="#about" data-i18n="About">About</a>
-        <a href="#work" data-i18n="Work">Work</a>
-        <a href="#expertise" data-i18n="Skills">Skills</a>
-        <a href="#impact" data-i18n="Experience">Experience</a>
-        <a href="#contact" data-i18n="Contact">Contact</a>
-      </nav>
-      <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch to light theme">
-        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-          <circle cx="12" cy="12" r="4"></circle>
-          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
-        </svg>
-        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-          <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3 7 7 0 0 0 21 14.5z"></path>
-        </svg>
-      </button>
-      <button class="nav-cta" data-magnetic data-open-modal data-i18n="Let’s Connect">Let’s Connect</button>
-    </header>
-
-    <aside class="availability" role="status">
-      <span class="pulse" aria-hidden="true"></span>
-      <span data-availability></span>
-    </aside>
+    <a class="skip" href="#work" data-h="Skip to selected work">Skip to selected work</a>
+    <div class="progress" aria-hidden="true"><i></i></div>
+    <div class="cur" aria-hidden="true"><span></span></div>
 
     <main id="top">
+      <!-- ============ HERO ============ -->
       <section class="hero" data-hero>
-        <div class="hero-meta">
-          <p class="kicker" data-kicker></p>
+        <i class="orb o1" aria-hidden="true"></i>
+        <i class="orb o2" aria-hidden="true"></i>
+        <div class="wrap hero-in">
+          <div class="hero-chips" data-chips aria-hidden="true"></div>
+          <div class="hero-top" data-rv>
+            <span class="live"><i aria-hidden="true"></i><span data-availability></span></span>
+          </div>
+          <p class="mono hello" data-greeting data-rv></p>
+          <h1 class="hero-h" data-headline></h1>
+          <div class="hero-foot">
+            <p class="hero-cur" data-rv>
+              <span class="mono" data-h="Currently">Currently</span>
+              <b data-currently></b>
+            </p>
+            <div class="hero-cta" data-rv>
+              <a class="btn btn-solid" href="#work" data-magnetic><span data-h="View selected work">View selected work</span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg></a>
+              <a class="btn btn-line" href="./assets/Ilayanila-M-CV.pdf" download="Ilayanila-M-CV.pdf" data-magnetic data-h="Download CV">Download CV</a>
+            </div>
+            <a class="spin" href="#about" aria-label="Scroll" data-ha="Scroll" data-rv>
+              <svg viewBox="0 0 120 120" aria-hidden="true"><defs><path id="spinPath" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0"/></defs><text><textPath href="#spinPath" startOffset="0">Senior Product Designer · AI UX Engineer · </textPath></text></svg>
+              <b aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></b>
+            </a>
+          </div>
         </div>
-        <p class="greeting" data-greeting></p>
-        <h1 class="kinetic" data-headline></h1>
-        <p class="currently" data-currently></p>
-        <p class="hook" data-hook></p>
-        <div class="badges" data-badges></div>
-        <div class="cta-row">
-          <a class="btn btn-primary" data-magnetic href="#work" data-i18n="View selected work">View selected work</a>
-          <button class="btn btn-ghost" data-magnetic data-open-modal data-i18n="Let’s talk">Let’s talk</button>
-        </div>
-        <p class="proof-label" data-i18n="Primary UX skills">Primary UX skills</p>
-        <div class="proof" data-proof></div>
       </section>
 
-      <div class="logo-rail" data-i18n-aria="Design-Driven Business Outcomes" aria-label="Design-Driven Business Outcomes">
-        <p class="proof-label rail-label" data-i18n="Design-Driven Business Outcomes">Design-Driven Business Outcomes</p>
-        <div class="marquee">
-          <div class="marquee-track" data-marquee></div>
-        </div>
+      <!-- ============ MARQUEE ============ -->
+      <div class="marq" aria-hidden="true" dir="ltr">
+        <div class="marq-row big"><div class="marq-track" data-marq="-1" data-marq-speed="0.5"></div></div>
+        <div class="marq-row sm"><div class="marq-track" data-marq="1" data-marq-speed="0.35"></div></div>
       </div>
 
-      <section class="section" id="about">
-        <div class="section-head">
-          <span class="index" data-i18n="01 — About">01 — About</span>
-          <h2 data-i18n="About me">About me</h2>
-        </div>
-        <div class="about-copy">
-          <p class="hook" data-about></p>
-          <p class="hook" data-value></p>
-        </div>
-        <div class="cta-row">
-          <a class="btn btn-primary" data-magnetic href="./assets/Ilayanila-M-CV.pdf" download="Ilayanila-M-CV.pdf" data-i18n="Download CV">Download CV</a>
+      <!-- ============ ABOUT ============ -->
+      <section class="sec" id="about">
+        <div class="wrap">
+          <div class="sec-h" data-rv>
+            <span class="mono idx" data-h="01 — About">01 — About</span>
+          </div>
+          <div class="about-grid">
+            <p class="about-lead" data-about></p>
+            <div class="about-side" data-rv>
+              <p class="about-val" data-value></p>
+              <div class="cta-row">
+                <a class="btn btn-line" href="./assets/Ilayanila-M-CV.pdf" download="Ilayanila-M-CV.pdf" data-magnetic data-h="Download CV">Download CV</a>
+              </div>
+            </div>
+          </div>
+          <div class="stats" data-counters></div>
         </div>
       </section>
 
-      <section class="section work" id="work">
-        <div class="section-head">
-          <span class="index" data-i18n="02 — Selected work">02 — Selected work</span>
-          <h2 data-i18n="Selected work">Selected work</h2>
+      <!-- ============ WORK ============ -->
+      <section class="sec work" id="work">
+        <div class="wrap">
+          <div class="sec-h" data-rv>
+            <span class="mono idx" data-h="02 — Selected work">02 — Selected work</span>
+            <h2 class="h-lg" data-h="Selected work">Selected work</h2>
+          </div>
+          <div class="stack" data-projects></div>
         </div>
-        <div class="project-grid" data-projects></div>
       </section>
 
-      <section class="section" id="expertise">
-        <div class="section-head">
-          <span class="index" data-i18n="03 — Skills">03 — Skills</span>
-          <h2 data-i18n="The craft, the method and the tools behind it.">The craft, the method and the tools behind it.</h2>
+      <!-- ============ IMPACT BAND ============ -->
+      <section class="band" aria-labelledby="bandT">
+        <div class="wrap">
+          <div class="band-in" data-rv>
+            <div class="band-head">
+              <span class="mono" data-h="Impact">Impact</span>
+              <h2 id="bandT" class="h-md" data-h="Measured on the AI interview module">Measured on the AI interview module</h2>
+            </div>
+            <div class="band-grid" data-band></div>
+          </div>
         </div>
-        <div class="matrix skill-cats" data-skills></div>
       </section>
 
-      <section class="section" id="impact">
-        <div class="section-head">
-          <span class="index" data-i18n="04 — Experience">04 — Experience</span>
-          <h2 data-i18n="Where I’ve designed.">Where I’ve designed.</h2>
+      <!-- ============ SKILLS ============ -->
+      <section class="sec" id="expertise">
+        <div class="wrap">
+          <div class="sec-h" data-rv>
+            <span class="mono idx" data-h="03 — Skills">03 — Skills</span>
+            <h2 class="h-lg" data-h="The craft, the method and the tools behind it.">The craft, the method and the tools behind it.</h2>
+          </div>
+          <div class="acc" data-skills></div>
         </div>
-        <p class="hook impact-lede" data-i18n="9+ years · product-based and service-based teams. Expand a role for résumé bullets.">9+ years · product-based and service-based teams. Expand a role for résumé bullets.</p>
-        <div class="timeline" data-experience></div>
-        <div class="creds" data-creds></div>
       </section>
 
-      <footer class="footer" id="contact">
-        <p class="kicker" data-i18n="05 — Contact">05 — Contact</p>
-        <h2 data-i18n="Let’s talk about the next product.">Let’s talk about the next product.</h2>
-        <p class="hook" data-contact-blurb></p>
-        <div class="contact-row" data-contact-row></div>
-        <p class="local-time" data-local-time role="timer" aria-live="off"></p>
-        <div class="legal" data-legal></div>
+      <!-- ============ EXPERIENCE ============ -->
+      <section class="sec" id="impact">
+        <div class="wrap">
+          <div class="sec-h" data-rv>
+            <span class="mono idx" data-h="04 — Experience">04 — Experience</span>
+            <h2 class="h-lg" data-h="Where I’ve designed.">Where I’ve designed.</h2>
+          </div>
+          <p class="lede" data-rv data-h="9+ years · product-based and service-based teams. Expand a role for résumé bullets.">9+ years · product-based and service-based teams. Expand a role for résumé bullets.</p>
+          <div class="acc acc-exp" data-experience></div>
+          <div class="creds" data-creds></div>
+        </div>
+      </section>
+
+      <!-- ============ CONTACT ============ -->
+      <footer class="foot" id="contact">
+        <div class="wrap">
+          <div class="sec-h" data-rv>
+            <span class="mono idx" data-h="05 — Contact">05 — Contact</span>
+          </div>
+          <h2 class="foot-h" data-foot-h></h2>
+          <a class="foot-mail" data-mail data-magnetic data-rv></a>
+          <div class="kcards" data-contact-row data-rv></div>
+          <div class="foot-bar" data-rv>
+            <p class="mono" data-local-time role="timer" aria-live="off"></p>
+            <button class="totop" type="button" data-top><span data-h="Back to top">Back to top</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
+          </div>
+          <div class="legal" data-legal></div>
+        </div>
       </footer>
     </main>
 
     <div class="modal" id="connect-modal" role="dialog" aria-modal="true" aria-labelledby="connect-title" hidden>
       <div class="modal-card">
         <div class="modal-head">
-          <h2 id="connect-title" data-i18n="Let’s connect">Let’s connect</h2>
-          <button class="close" data-close-modal data-i18n-aria="Close" aria-label="Close" data-i18n="Close">Close</button>
+          <h2 id="connect-title" data-h="Let’s connect">Let’s connect</h2>
+          <button class="close" type="button" data-close-modal data-ha="Close" aria-label="Close" data-h="Close">Close</button>
         </div>
         <p data-modal-copy></p>
-        <form id="connect-form">
+        <form id="connect-form" novalidate>
           <label class="field">
-            <span data-i18n="Name">Name</span>
+            <span data-h="Name">Name</span>
             <input id="connect-name" name="name" required autocomplete="name" />
           </label>
           <label class="field">
-            <span data-i18n="Work email">Work email</span>
+            <span data-h="Work email">Work email</span>
             <input id="connect-email" name="email" type="email" required autocomplete="email" />
           </label>
           <label class="field">
-            <span data-i18n="What should we build?">What should we build?</span>
-            <textarea id="connect-note" name="note" data-i18n-placeholder="Role, product, timeline…" placeholder="Role, product, timeline…"></textarea>
+            <span data-h="What should we build?">What should we build?</span>
+            <textarea id="connect-note" name="note" data-hp="Role, product, timeline…" placeholder="Role, product, timeline…"></textarea>
           </label>
           <p class="form-msg" role="alert" aria-live="polite" data-form-msg></p>
           <div class="cta-row">
-            <button class="btn btn-primary" type="submit" data-i18n="Send intro">Send intro</button>
+            <button class="btn btn-solid" type="submit" data-h="Send intro">Send intro</button>
           </div>
         </form>
       </div>
@@ -184,9 +221,6 @@
 
     <script defer src="./i18n.js?v=rw3"></script>
     <script defer src="./content.js?v=rw3"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
-    <script defer src="./main.js?v=c11"></script>
+    <script defer src="./home2.js?v=r2a"></script>
   </body>
 </html>
