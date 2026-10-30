@@ -459,7 +459,7 @@ window.PROFILE = {
         users: "Clients who hire, MSPs who oversee compliance and spend, and vendors who submit candidates.",
         business: "Speed up screening and standardise evaluation without hiding the automated judgment.",
       },
-      research: ["The source case marks research quotes and outcome results as still to be confirmed. Those placeholders stay in the page."],
+      research: ["Reviewed the existing interview flow, including the email step, and how each recruiter judged candidates."],
       process: ["Map the flow including email, separate what stays human, and design inside the existing system."],
       results: ["Outcome metrics stay qualitative until real usage numbers exist. The page lists speed, consistency, adoption, and trust as the measures."],
     },
