@@ -1,0 +1,227 @@
+/* fx — R1 enhancement layer: kinetic type, telemetry, tactile glass, haptics, focus mode, cursor.
+   Home page only. Everything here is additive; remove fx.css + fx.js to get plain R1 back. */
+
+/* ---------- 1. Kinetic type ---------- */
+.fx-kt { font-variation-settings: normal !important; font-weight: 699; font-stretch: 100%; }
+.fx-kt.fx-lock { white-space: nowrap; text-wrap: initial; }
+.fx-kt .kwd, .fx-kt .kch { display: inline !important; transform: none !important; animation: none !important; opacity: 1 !important; }
+.fx-kt .kch { font-weight: var(--w, 699); }
+.section-head h2.fx-kt, .footer h2.fx-kt {
+  font-weight: calc(699 + 100 * var(--kv, 0));
+  font-stretch: calc(100% - 20% * var(--kv, 0));
+  transform: skewX(calc(var(--kv, 0) * var(--kd, 1) * -5deg));
+  transform-origin: 0 100%;
+  will-change: transform;
+}
+html[dir="rtl"] .section-head h2.fx-kt, html[dir="rtl"] .footer h2.fx-kt { transform-origin: 100% 100%; }
+
+/* ---------- 2. Technical micro-metadata ---------- */
+.tm {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--snow-dim); font-variant-numeric: tabular-nums;
+  direction: ltr;
+}
+.tm > span { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.tm b { font-weight: 500; color: var(--snow); }
+.tm-sep { width: 1px; height: 10px; background: var(--line); }
+.tm-snd {
+  font: inherit; letter-spacing: inherit; text-transform: inherit; color: var(--snow-dim);
+  display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 12px;
+  border: 1px solid var(--line); border-radius: 999px; background: transparent; cursor: pointer;
+  transition: color .2s, border-color .2s, background-color .2s;
+}
+.tm-snd:hover { color: var(--snow); border-color: var(--snow-dim); }
+.tm-snd[aria-pressed="true"] { color: var(--em); border-color: color-mix(in srgb, var(--em) 55%, transparent); background: color-mix(in srgb, var(--em) 8%, transparent); }
+.tm-snd:focus-visible { outline: 2px solid var(--em); outline-offset: 2px; }
+.tm-eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 10px; }
+.tm-eq i { width: 2px; height: 3px; background: currentColor; border-radius: 1px; }
+.tm-snd[aria-pressed="true"] .tm-eq i { animation: tm-eq .9s ease-in-out infinite; }
+.tm-snd[aria-pressed="true"] .tm-eq i:nth-child(2) { animation-delay: -.3s; }
+.tm-snd[aria-pressed="true"] .tm-eq i:nth-child(3) { animation-delay: -.6s; }
+@keyframes tm-eq { 0%, 100% { height: 3px; } 50% { height: 10px; } }
+@media (max-width: 900px) { .tm .tm-wide { display: none; } }
+@media (max-width: 520px) { .tm { gap: 6px 12px; font-size: 10px; letter-spacing: .08em; } .tm .tm-mid { display: none; } }
+
+/* Architectural callouts + oversized section numerals */
+.section-head { position: relative; }
+.section-head > :not(.co) { position: relative; z-index: 1; }
+.section-head[data-no]::before {
+  content: attr(data-no);
+  position: absolute; inset-inline-end: -6px; top: -96px; z-index: 0;
+  font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 800; font-stretch: 75%;
+  font-size: clamp(110px, 14vw, 210px); line-height: .8; letter-spacing: -.05em;
+  color: transparent; -webkit-text-stroke: 1px color-mix(in srgb, var(--snow) 13%, transparent);
+  pointer-events: none; user-select: none;
+}
+.co {
+  position: absolute; inset-inline-end: 0; bottom: -24px;
+  display: flex; align-items: center; gap: 12px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--snow-dim); white-space: nowrap; direction: ltr;
+}
+.co::before { content: ""; width: 56px; height: 1px; background: linear-gradient(90deg, transparent, var(--snow-dim)); }
+.co i { width: 5px; height: 5px; border: 1px solid var(--em); transform: rotate(45deg); }
+.co b { font-weight: 500; color: var(--snow); }
+@media (max-width: 900px) {
+  .co { position: static; margin-top: 4px; }
+  .co::before { display: none; }
+  .section-head[data-no]::before { top: -72px; inset-inline-end: 0; font-size: 110px; }
+}
+
+/* Intentional asymmetry: the middle column of the skills grid drops out of line */
+@media (min-width: 1101px) {
+  .skill-cats.fx-asym { padding-bottom: 40px; }
+  .skill-cats.fx-asym > .skill:nth-child(3n + 2) { margin-top: 40px; margin-bottom: -40px; }
+}
+
+/* ---------- 3. Tactile glass ---------- */
+.tg {
+  --lx: 50%; --ly: -40%; --lo: 0;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 9%, transparent),
+    inset 0 -22px 34px -26px rgba(0, 0, 0, .55),
+    0 30px 60px -38px rgba(0, 0, 0, .75);
+}
+html[data-theme="light"] .tg {
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -18px 30px -26px rgba(20, 22, 28, .12),
+    0 26px 50px -36px rgba(20, 22, 28, .4);
+}
+.tg-rim, .tg-sheen {
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 5;
+  opacity: var(--lo); transition: opacity .35s ease;
+}
+/* 1px border that catches the light where the cursor is */
+.tg-rim {
+  padding: 1px;
+  background: radial-gradient(260px circle at var(--lx) var(--ly),
+    color-mix(in srgb, #fff 80%, var(--tgc, var(--em))) 0%,
+    color-mix(in srgb, var(--tgc, var(--em)) 70%, transparent) 30%,
+    transparent 68%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+/* soft specular bloom + frosted noise */
+.tg-sheen {
+  background:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(380px circle at var(--lx) var(--ly), color-mix(in srgb, #fff 7%, transparent), transparent 62%);
+  background-size: 160px 160px, auto;
+  mix-blend-mode: overlay;
+}
+html[data-theme="light"] .tg-rim {
+  background: radial-gradient(260px circle at var(--lx) var(--ly),
+    color-mix(in srgb, var(--tgc, var(--em)) 85%, #000) 0%,
+    color-mix(in srgb, var(--tgc, var(--em)) 45%, transparent) 34%, transparent 68%);
+}
+.modal-card.tg { position: relative; }
+
+/* ---------- 4. Haptic feedback metaphors ---------- */
+.hx-press { scale: .97; transition: scale .09s cubic-bezier(.3, 0, .6, 1); }
+.hx-release { transition: scale .42s cubic-bezier(.2, 1.6, .35, 1); }
+.hx-ring {
+  position: fixed; z-index: 96; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%;
+  border: 1px solid var(--em); pointer-events: none; animation: hx-ring .5s cubic-bezier(.2, .7, .2, 1) forwards;
+}
+.hx-ring + .hx-ring { animation-delay: .07s; opacity: 0; }
+@keyframes hx-ring { 0% { transform: scale(.4); opacity: .9; } 100% { transform: scale(5); opacity: 0; } }
+
+/* ---------- 5. Focus mode ---------- */
+html.fm-on, html.fm-on body { overflow: hidden !important; }
+.fm {
+  position: fixed; inset: 0; z-index: 9500; display: grid; grid-template-rows: auto 1fr;
+  background: var(--ink, #0b0c0e); color: var(--snow);
+  clip-path: inset(var(--ft, 50%) var(--fr, 50%) var(--fb, 50%) var(--fl, 50%) round 28px);
+  transition: clip-path .75s cubic-bezier(.76, 0, .18, 1);
+}
+.fm.is-open { clip-path: inset(0 0 0 0 round 0); }
+.fm-bar {
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px 24px;
+  padding: 14px max(20px, env(safe-area-inset-right, 0px)) 0 max(20px, env(safe-area-inset-left, 0px));
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--ink, #0b0c0e) 88%, var(--em));
+}
+.fm-x, .fm-open {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 16px; border-radius: 999px;
+  border: 1px solid var(--line); background: transparent; color: var(--snow); cursor: pointer; text-decoration: none;
+  font: 500 13px/1 "Instrument Sans", system-ui, sans-serif; white-space: nowrap;
+  transition: border-color .2s, background-color .2s;
+}
+.fm-x:hover, .fm-open:hover { border-color: var(--snow-dim); background: color-mix(in srgb, var(--snow) 6%, transparent); }
+.fm-x:focus-visible, .fm-open:focus-visible, .fm-tabs button:focus-visible { outline: 2px solid var(--em); outline-offset: 2px; }
+.fm-x kbd {
+  font: 500 10px/1 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: .08em; padding: 4px 6px; border-radius: 5px;
+  border: 1px solid var(--line); color: var(--snow-dim);
+}
+.fm-mid { display: flex; align-items: center; gap: 20px; min-width: 0; }
+.fm-ttl { display: grid; gap: 4px; min-width: 0; }
+.fm-ttl span { font: 500 10px/1 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--fmc, var(--em)); }
+.fm-ttl b { font: 700 17px/1.15 "Bricolage Grotesque", system-ui, sans-serif; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fm-pills { display: flex; gap: 8px; flex: none; }
+.fm-pills span {
+  display: inline-flex; align-items: center; min-height: 30px; padding: 0 12px; border-radius: 999px; white-space: nowrap;
+  font: 500 12px/1 "Instrument Sans", system-ui, sans-serif; color: var(--snow);
+  border: 1px solid color-mix(in srgb, var(--fmc, var(--em)) 45%, transparent);
+  background: color-mix(in srgb, var(--fmc, var(--em)) 12%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 10%, transparent);
+}
+.fm-end { display: flex; align-items: center; gap: 16px; }
+.fm-pct { font: 500 12px/1 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: .1em; color: var(--snow-dim); font-variant-numeric: tabular-nums; min-width: 4ch; text-align: end; }
+.fm-tabs { grid-column: 1 / -1; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-bottom: 10px; min-height: 12px; }
+.fm-tabs::-webkit-scrollbar { display: none; }
+.fm-tabs button {
+  flex: none; min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid transparent; background: transparent; cursor: pointer;
+  font: 500 12px/1 "Instrument Sans", system-ui, sans-serif; color: var(--snow-dim); white-space: nowrap;
+  transition: color .2s, background-color .2s, border-color .2s;
+}
+.fm-tabs button:hover { color: var(--snow); }
+.fm-tabs button[aria-current="true"] { color: var(--snow); border-color: var(--line); background: color-mix(in srgb, var(--snow) 7%, transparent); }
+.fm-tabs button i { font: 500 10px/1 "IBM Plex Mono", ui-monospace, monospace; color: var(--fmc, var(--em)); margin-inline-end: 8px; font-style: normal; }
+.fm-prog { position: absolute; inset-inline-start: 0; bottom: -1px; height: 2px; width: 100%; transform: scaleX(var(--fp, 0)); transform-origin: 0 50%; background: linear-gradient(90deg, var(--fmc, var(--em)), var(--em)); }
+html[dir="rtl"] .fm-prog { transform-origin: 100% 50%; }
+.fm-body { position: relative; min-height: 0; }
+.fm-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: var(--ink, #0b0c0e); opacity: 0; transition: opacity .45s ease .1s; }
+.fm.is-ready .fm-frame { opacity: 1; }
+.fm-load {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 18px;
+  font: 500 11px/1 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: .16em; text-transform: uppercase; color: var(--snow-dim);
+  transition: opacity .3s; pointer-events: none;
+}
+.fm-load i { width: 120px; height: 1px; background: var(--line); position: relative; overflow: hidden; }
+.fm-load i::after { content: ""; position: absolute; inset: 0; background: var(--fmc, var(--em)); transform: translateX(-100%); animation: fm-load 1.1s cubic-bezier(.6, 0, .4, 1) infinite; }
+@keyframes fm-load { to { transform: translateX(100%); } }
+.fm.is-ready .fm-load { opacity: 0; }
+@media (max-width: 1100px) { .fm-pills { display: none; } }
+
+/* ---------- 6. Contextual cursor ---------- */
+.cursor.fxc {
+  display: grid; place-items: center; overflow: hidden; box-sizing: border-box; border: 0 solid var(--em);
+  transition: width .32s cubic-bezier(.2, .9, .25, 1.15), height .32s cubic-bezier(.2, .9, .25, 1.15),
+    border-radius .3s, background-color .2s, opacity .2s, scale .15s;
+}
+.cursor.fxc span {
+  font: 600 10px/1 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--ink, #0b0c0e); white-space: nowrap; opacity: 0; transition: opacity .15s;
+}
+.cursor.fxc.grow { background: var(--em); border-width: 0; }
+.cursor.fxc.c-pill { mix-blend-mode: normal; background: var(--em); border-radius: 999px; }
+.cursor.fxc.c-pill span { opacity: 1; transition-delay: .1s; }
+.cursor.fxc.c-ring { background: transparent; border-width: 1px; mix-blend-mode: normal; }
+.cursor.fxc.c-bar { border-radius: 2px; mix-blend-mode: normal; }
+.cursor.fxc.c-down { scale: .82; }
+.cursor.fxc.c-hide { opacity: 0; }
+.cursor-label { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fm { transition: none; }
+  .fm-frame { transition: none; }
+  .hx-ring { display: none; }
+  .hx-press { scale: none; }
+  .section-head h2.fx-kt, .footer h2.fx-kt { transform: none; font-weight: 699; font-stretch: 100%; }
+  .tm-snd[aria-pressed="true"] .tm-eq i { animation: none; height: 7px; }
+  .tg-rim, .tg-sheen { transition: none; }
+  .cursor.fxc { transition: opacity .2s; }
+}

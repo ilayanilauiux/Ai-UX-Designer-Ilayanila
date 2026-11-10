@@ -932,17 +932,28 @@ function bindUI() {
     mx = e.clientX;
     my = e.clientY;
   });
-  $$("[data-magnetic]").forEach((el, i) => {
-    el.addEventListener("mousemove", (e) => {
-      const r = el.getBoundingClientRect();
-      magnets[i].tx = (e.clientX - (r.left + r.width / 2)) * 0.28;
-      magnets[i].ty = (e.clientY - (r.top + r.height / 2)) * 0.28;
+  /* Magnetic field: attraction starts before the pointer reaches the element. */
+  const FIELD = 56;
+  let magDirty = false;
+  document.addEventListener("mousemove", () => { magDirty = true; }, { passive: true });
+  document.addEventListener("mouseleave", () => { magnets.forEach((m) => { m.tx = 0; m.ty = 0; }); });
+  const magField = () => {
+    if (!magDirty) return;
+    magDirty = false;
+    magnets.forEach((m) => {
+      const r = m.el.getBoundingClientRect();
+      if (r.bottom < -FIELD || r.top > window.innerHeight + FIELD || !r.width) { m.tx = 0; m.ty = 0; return; }
+      const cxm = r.left - m.x + r.width / 2, cym = r.top - m.y + r.height / 2;
+      const dx = mx - cxm, dy = my - cym;
+      const ox = Math.max(0, Math.abs(dx) - r.width / 2), oy = Math.max(0, Math.abs(dy) - r.height / 2);
+      const out = Math.hypot(ox, oy);
+      if (out > FIELD) { m.tx = 0; m.ty = 0; return; }
+      const pull = 0.28 * (1 - out / FIELD);
+      const cap = Math.min(18, r.height * 0.45);
+      m.tx = Math.max(-cap, Math.min(cap, dx * pull));
+      m.ty = Math.max(-cap, Math.min(cap, dy * pull));
     });
-    el.addEventListener("mouseleave", () => {
-      magnets[i].tx = 0;
-      magnets[i].ty = 0;
-    });
-  });
+  };
   $$("[data-cursor]").forEach((el) => {
     el.addEventListener("mouseenter", () => {
       cursor?.classList.add("grow");
@@ -1002,6 +1013,7 @@ function bindUI() {
       cursorLabel.style.left = `${mx}px`;
       cursorLabel.style.top = `${my}px`;
     }
+    magField();
     magnets.forEach((m) => {
       m.x += (m.tx - m.x) * 0.16;
       m.y += (m.ty - m.y) * 0.16;
@@ -1018,6 +1030,7 @@ function bindUI() {
       smoothWheel: true,
       touchMultiplier: 1.1,
     });
+    window.__lenis = lenis;
     lenis.on("scroll", ({ scroll }) => onScrollChrome(scroll));
   } else {
     window.addEventListener("scroll", () => onScrollChrome(window.scrollY), {
